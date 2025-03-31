@@ -1,2 +1,6 @@
 # Ignorar archivos generados por Composer
 /vendor/
+
+# Archivos temporales de editores y sistemas operativos
+.DS_Store
+Thumbs.db
