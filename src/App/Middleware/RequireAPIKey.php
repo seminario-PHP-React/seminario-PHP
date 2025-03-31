@@ -18,12 +18,12 @@ class RequireAPIKey
     {
         $params = $request->getQueryParams();
 
-        if (! array_key_exists('api-key', $params)){
+        if (! $request->hasHeader('X-API-Key', $params)){
             $response = $this -> factory->createResponse();
             $response->getBody()->write(json_encode('API key is required'));
             return $response->withStatus(400);
         }
-        if ($params['api-key'] !== 'abc'){
+        if ($request->getHeaderLine('X-API-Key')!== '123'){
             $response = $this -> factory->createResponse();
             $response->getBody()->write(json_encode('invalid API key'));
             return $response->withStatus(401);

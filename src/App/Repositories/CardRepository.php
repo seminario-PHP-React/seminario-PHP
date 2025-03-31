@@ -13,7 +13,7 @@ class CardRepository
     }
     public function getAll(): array {
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->query("SELECT * FROM carta");
+        $stmt = $pdo->query("SELECT * FROM usuario");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function getById(int $id): array|bool {
