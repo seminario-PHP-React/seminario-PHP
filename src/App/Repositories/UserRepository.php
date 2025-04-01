@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Repositories;
 use App\Database;
+use PDO;
 
 class UserRepository{
 
@@ -29,7 +30,27 @@ class UserRepository{
         $stmt->bindParam(':user_name', $userName);
         $stmt->execute();
         $result = $stmt->fetchColumn();
-        return $result > 0;  // Si hay 1 o más resultados, el usuario ya existe
+        return $result > 0;  
     }
 
+    public function find(string $column, $value):array|bool
+    {
+        $sql = "SELECT * FROM usuario WHERE $column = :value";
+        $pdo = $this->database ->getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':value', $value);
+        $stmt->execute();
+        return $stmt->fetch();
+    }
+    public function update(int $id, string $column, $value): void{
+        $sql = "UPDATE usuario SET $column = :value WHERE id = :id";
+
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($sql);
+
+        $stmt->bindValue(':value', $value);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        $stmt->execute();
+    }
 }
