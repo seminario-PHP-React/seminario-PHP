@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Repositories;
 use App\Database;
+use PDO;
 
 class UserRepository{
 
@@ -40,5 +41,16 @@ class UserRepository{
         $stmt->bindValue(':value', $value);
         $stmt->execute();
         return $stmt->fetch();
+    }
+    public function update(int $id, string $column, $value): void{
+        $sql = "UPDATE usuario SET $column = :value WHERE id = :id";
+
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($sql);
+
+        $stmt->bindValue(':value', $value);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        $stmt->execute();
     }
 }

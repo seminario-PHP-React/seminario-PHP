@@ -15,7 +15,7 @@ class Profile{
     }
     public function show(Request $request, Response $response): Response
     {
-        $user = $request-> getAttribute('usuario');
+        $user = $request-> getAttribute('usuario');        
         $api_key= $user['token'];
 
         $response->getBody()->write("API KEY: $api_key");

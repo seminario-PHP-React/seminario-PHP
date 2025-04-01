@@ -26,11 +26,15 @@ class RequireAPIKey
         }
         $api_key = $request->getHeaderLine('X-API-Key');
         $user= $this->repository->find('token', $api_key);
-
         if ($user === false){
-
             $response = $this -> factory->createResponse();
             $response->getBody()->write(json_encode('invalid API key'));
+            return $response->withStatus(401);
+        }
+        $api_exp_date = strtotime($user['vencimiento_token']);
+        if ($api_exp_date < time() ){
+            $response = $this -> factory->createResponse();
+            $response->getBody()->write(json_encode('Your API key has expired, please login to get a new one.'));
             return $response->withStatus(401);
         }
 
