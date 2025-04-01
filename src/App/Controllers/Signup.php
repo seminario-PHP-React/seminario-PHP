@@ -40,7 +40,7 @@ class Signup{
         $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         $api_key = bin2hex(random_bytes(16));
         $data['api_key'] = $api_key;
-        $data['api_key_expiration'] = date('Y-m-d H:i:s', strtotime('+30 days', time()));
+        $data['api_key_expiration'] = date('Y-m-d H:i:s', strtotime('+1 hours', time()));
         $this->repository->create($data);
         $response-> getBody()->write("Here is your API key: $api_key");
         return $response;

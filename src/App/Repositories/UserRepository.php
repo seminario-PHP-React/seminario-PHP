@@ -29,7 +29,16 @@ class UserRepository{
         $stmt->bindParam(':user_name', $userName);
         $stmt->execute();
         $result = $stmt->fetchColumn();
-        return $result > 0;  // Si hay 1 o más resultados, el usuario ya existe
+        return $result > 0;  
     }
 
+    public function find(string $column, $value):array|bool
+    {
+        $sql = "SELECT * FROM usuario WHERE $column = :value";
+        $pdo = $this->database ->getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':value', $value);
+        $stmt->execute();
+        return $stmt->fetch();
+    }
 }

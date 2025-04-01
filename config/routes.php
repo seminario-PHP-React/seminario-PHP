@@ -6,8 +6,18 @@ use App\Middleware\GetCard;
 use Slim\Routing\RouteCollectorProxy;
 use App\Middleware\RequireAPIKey;
 use App\Controllers\Signup;
+use App\Controllers\Login;
+use App\Controllers\Profile;
+use App\Middleware\ActivateSession;
+use App\Middleware\RequireLogin;
 
-$app->post('/signup', Signup::class . ':create' );
+$app->group('', function (RouteCollectorProxy $group){
+    $group->post('/signup', Signup::class . ':create' );
+    $group->post('/login', Login::class . ':create' );
+    $group->get('/logout', Login::class . ':destroy');
+    $group->get('/profile', Profile::class . ':show')->add(RequireLogin::class);
+})->add(ActivateSession::class);
+
 $app->group('/api', function (RouteCollectorProxy $group){
     $group->get('/card', CardsIndex::class);
     $group->post('/card', [Cards::class, 'create']);
