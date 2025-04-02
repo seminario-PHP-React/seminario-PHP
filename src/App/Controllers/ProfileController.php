@@ -7,11 +7,12 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\UserModel;
+use App\Model\UserModel as ModelUserModel;
 use Valitron\Validator;
 
 
 
-class Profile{
+class ProfileController{
     public function __construct(private UserModel $model, private Validator $validator){
         
     }
@@ -39,7 +40,6 @@ class Profile{
 
         return $response;
     }
-
 
     public function update(Request $request, Response $response): Response
     {

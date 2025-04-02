@@ -7,17 +7,17 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-use App\Repositories\UserRepository;
+use App\Model\UserModel;
 
-class Login{
-    public function __construct(private UserRepository $repository)
+class LoginController{
+    public function __construct(private UserModel $model)
     {
         
     }
     public function create(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody(); 
-        $user = $this->repository->find('usuario', $data['user']);
+        $user = $this->model->find('usuario', $data['user']);
 
         if ($user && password_verify($data['password'], $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id']; 
@@ -30,8 +30,8 @@ class Login{
                 $now = date('Y-m-d H:i:s', strtotime('+1 hour'));  
 
                 // Actualizar el token y la fecha de expiración en la base de datos
-                $this->repository->update($user['id'], 'token', $new_api_key);
-                $this->repository->update($user['id'], 'vencimiento_token', $now);
+                $this->model->update($user['id'], 'token', $new_api_key);
+                $this->model->update($user['id'], 'vencimiento_token', $now);
             }
 
             $response->getBody()->write('Logged in');
