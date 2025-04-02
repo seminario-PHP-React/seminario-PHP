@@ -8,11 +8,11 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Factory\ResponseFactory;
-use App\Repositories\UserRepository;
+use App\Model\UserModel;
 
 class RequireAPIKey
 {
-    public function __construct(private ResponseFactory $factory, private UserRepository $repository){
+    public function __construct(private ResponseFactory $factory, private UserModel $model){
 
     }
     public function __invoke(Request $request, RequestHandler $handler): Response 
@@ -25,7 +25,7 @@ class RequireAPIKey
             return $response->withStatus(400);
         }
         $api_key = $request->getHeaderLine('X-API-Key');
-        $user= $this->repository->find('token', $api_key);
+        $user= $this->model->find('token', $api_key);
         if ($user === false){
             $response = $this -> factory->createResponse();
             $response->getBody()->write(json_encode('invalid API key'));

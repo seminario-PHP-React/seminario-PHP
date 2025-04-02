@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
-namespace App\Repositories;
+namespace App\Model;
 use App\Database;
 use PDO;
 
-class UserRepository{
+class UserModel{
 
     public function __construct(private Database $database)
     {
