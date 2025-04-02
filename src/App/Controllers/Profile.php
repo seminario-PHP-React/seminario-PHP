@@ -15,14 +15,32 @@ class Profile{
     public function __construct(private UserRepository $repository, private Validator $validator){
         
     }
-    public function show(Request $request, Response $response): Response
+    public function showApiKey(Request $request, Response $response): Response
     {
-        $user = $request-> getAttribute('user');        
+        $user = $request-> getAttribute('usuario');        
         $api_key= $user['token'];
 
         $response->getBody()->write("API KEY: $api_key");
         return $response;
     }
+
+    public function showUserData(Request $request, Response $response): Response
+    {
+        $user = $request->getAttribute('usuario');        
+
+        $body = json_encode([
+            "name" => $user['nombre'],
+            "username" => $user['usuario'],
+            "api_key" => $user['token'],
+            "api_key_expiration" =>date('d-m-Y H:i:s', strtotime($user['vencimiento_token'])) 
+        ]);
+
+        $response->getBody()->write($body);
+
+        return $response;
+    }
+
+
     public function update(Request $request, Response $response): Response
     {
     $user = $request->getAttribute('usuario');
