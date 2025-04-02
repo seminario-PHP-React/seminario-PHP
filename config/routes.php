@@ -16,6 +16,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->post('/login', Login::class . ':create' );
     $group->get('/logout', Login::class . ':destroy');
     $group->get('/profile', Profile::class . ':show')->add(RequireLogin::class);
+    $group->patch('/profile', Profile::class . ':update')->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){
