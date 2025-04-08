@@ -18,7 +18,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/logout', LoginController::class . ':destroy');
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
-    $group->get('/profile/{username: [a-zA-Z0-9]+}', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+    $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){

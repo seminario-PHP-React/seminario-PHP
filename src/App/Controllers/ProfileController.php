@@ -55,8 +55,8 @@ class ProfileController{
     // Configurar reglas dinámicamente según los campos recibidos
     $rules = [];
 
-    if (isset($data['user'])) {
-        $rules['user'] = ['required', 'alphaNum', ['lengthBetween', 6, 20]];
+    if (isset($data['name'])) {
+        $rules['name'] = ['required', 'alpha', ['lengthBetween', 6, 20]];
     }
 
     if (isset($data['password']) || isset($data['password_confirmation'])) {
@@ -90,13 +90,13 @@ class ProfileController{
     }
 
     // Si es actualización de usuario
-    if (isset($data['user'])) {
-        if ($this->model->userExists($data['user'])){
+    if (isset($data['name'])) {
+        if ($this->model->userExists($data['name'])){
             $response->getBody()->write(json_encode(['error' => 'User already exists']));
             return $response->withStatus(400);
         } 
 
-        $this->model->update($user['id'], 'usuario', $data['user']);
+        $this->model->update($user['id'], 'nombre', $data['name']);
         $body= json_encode('User updated succesfully.');
         $response->getBody()->write($body);
 
