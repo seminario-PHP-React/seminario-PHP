@@ -24,21 +24,32 @@ class Profile{
         return $response;
     }
 
-    public function showUserData(Request $request, Response $response): Response
+    public function showUserData(Request $request, Response $response, string $username): Response
     {
-        $user = $request->getAttribute('usuario');        
+        $user = $request->getAttribute('usuario');
+
+        if (!$user) {
+            $response->getBody()->write(json_encode(['error' => 'Usuario no autenticado']));
+            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        }
+
+        if ($user['usuario'] !== $username) {
+            $response->getBody()->write(json_encode(['error' => 'Nombre de usuario inválido']));
+            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+        }
 
         $body = json_encode([
             "name" => $user['nombre'],
             "username" => $user['usuario'],
             "api_key" => $user['token'],
-            "api_key_expiration" =>date('d-m-Y H:i:s', strtotime($user['vencimiento_token'])) 
+            "api_key_expiration" => date('d-m-Y H:i:s', strtotime($user['vencimiento_token']))
         ]);
 
         $response->getBody()->write($body);
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
+
 
 
     public function update(Request $request, Response $response): Response
