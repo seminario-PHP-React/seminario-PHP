@@ -7,11 +7,12 @@ namespace App\Controllers;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\UserModel;
+use App\Model\UserModel as ModelUserModel;
 use Valitron\Validator;
 
 
 
-class Profile{
+class ProfileController{
     public function __construct(private UserModel $model, private Validator $validator){
         
     }
@@ -24,33 +25,21 @@ class Profile{
         return $response;
     }
 
-    public function showUserData(Request $request, Response $response, string $username): Response
+    public function showUserData(Request $request, Response $response): Response
     {
-        $user = $request->getAttribute('usuario');
-
-        if (!$user) {
-            $response->getBody()->write(json_encode(['error' => 'Usuario no autenticado']));
-            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
-        }
-
-        if ($user['usuario'] !== $username) {
-            $response->getBody()->write(json_encode(['error' => 'Nombre de usuario inválido']));
-            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
-        }
+        $user = $request->getAttribute('usuario');        
 
         $body = json_encode([
             "name" => $user['nombre'],
             "username" => $user['usuario'],
             "api_key" => $user['token'],
-            "api_key_expiration" => date('d-m-Y H:i:s', strtotime($user['vencimiento_token']))
+            "api_key_expiration" =>date('d-m-Y H:i:s', strtotime($user['vencimiento_token'])) 
         ]);
 
         $response->getBody()->write($body);
 
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response;
     }
-
-
 
     public function update(Request $request, Response $response): Response
     {

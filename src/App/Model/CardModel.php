@@ -1,11 +1,11 @@
 <?php
 
 declare(strict_types=1);
-namespace App\Repositories;
+namespace App\Model;
 use App\Database;
 use PDO;
 
-class CardRepository
+class CardModel
 {
     public function __construct(private Database $database)
     {

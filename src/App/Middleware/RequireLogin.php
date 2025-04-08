@@ -8,17 +8,17 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Factory\ResponseFactory;
-use App\Repositories\UserRepository;
+use App\Model\UserModel;
 
 class RequireLogin
 {
-    public function __construct(private ResponseFactory $factory, private UserRepository $repository){
+    public function __construct(private ResponseFactory $factory, private UserModel $model){
 
     }
     public function __invoke(Request $request, RequestHandler $handler): Response 
     {
        if (isset($_SESSION['user_id'])){
-        $user = $this-> repository -> find ('id', $_SESSION['user_id']);
+        $user = $this-> model -> find ('id', $_SESSION['user_id']);
         if ($user){
             $request = $request -> withAttribute('usuario', $user);
             return $handler->handle($request);

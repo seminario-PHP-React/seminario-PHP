@@ -1,33 +1,33 @@
 <?php 
 declare(strict_types=1);
-use App\Controllers\Cards;
-use App\Controllers\CardsIndex;
-use App\Middleware\GetCard;
 use Slim\Routing\RouteCollectorProxy;
+
+use App\Controllers\CardsController;
+use App\Controllers\SignupController;
+use App\Controllers\LoginController;
+use App\Controllers\ProfileController;
+
 use App\Middleware\RequireAPIKey;
-use App\Controllers\Signup;
-use App\Controllers\Login;
-use App\Controllers\Profile;
+use App\Middleware\GetCard;
 use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
 
 $app->group('', function (RouteCollectorProxy $group){
-    $group->post('/signup', Signup::class . ':create' );
-    $group->post('/login', Login::class . ':create' );
-    $group->get('/logout', Login::class . ':destroy');
-    $group->get('/profile/api_key', Profile::class . ':showApiKey')->add(RequireLogin::class);
-    $group->get('/profile/{username: [a-zA-Z0-9]+}', Profile::class . ':showUserData')->add(RequireLogin::class);
-    $group->patch('/profile', Profile::class . ':update')->add(RequireLogin::class);
+    $group->post('/signup', SignupController::class . ':create' );
+    $group->post('/login', LoginController::class . ':create' );
+    $group->get('/logout', LoginController::class . ':destroy');
+    $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
+    $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
+    $group->get('/profile/{username: [a-zA-Z0-9]+}', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){
-    $group->get('/card', CardsIndex::class);
-    $group->post('/card', [Cards::class, 'create']);
+    $group->post('/card', [CardsController::class, 'create']);
 
     $group->group('', function (RouteCollectorProxy $group){
-        $group->get('/card/{id:[0-9]+}', Cards::class .  ':show');
-        $group->patch('/card/{id:[0-9]+}', Cards::class . ':update');
-        $group->delete('/card/{id:[0-9]+}', Cards::class . ':delete');
+        $group->get('/card/{id:[0-9]+}', CardsController::class .  ':show');
+        $group->patch('/card/{id:[0-9]+}', CardsController::class . ':update');
+        $group->delete('/card/{id:[0-9]+}', CardsController::class . ':delete');
     })->add(GetCard::class);
 })->add(RequireAPIKey::class);
 
