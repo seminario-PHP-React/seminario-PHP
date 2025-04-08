@@ -16,10 +16,15 @@ class LoginController{
     }
     public function create(Request $request, Response $response): Response
     {
+           
         $data = $request->getParsedBody(); 
         $user = $this->model->find('usuario', $data['user']);
-
-        if ($user && password_verify($data['password'], $user['password_hash'])) {
+        if (!isset($data['user'], $data['name'], $data['password'])) {
+            $response->getBody()->write('Fields are missing');
+            return $response->withStatus(400);
+        }     
+        
+        if ($user && $user['nombre'] === $data['name']  && password_verify($data['password'], $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id']; 
             
             // Obtener la fecha de expiración del usuario
