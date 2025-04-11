@@ -6,6 +6,7 @@ use App\Controllers\CardsController;
 use App\Controllers\SignupController;
 use App\Controllers\LoginController;
 use App\Controllers\ProfileController;
+use App\Controllers\JuegoController;
 
 use App\Middleware\RequireAPIKey;
 use App\Middleware\GetCard;
@@ -19,6 +20,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+    $group->post('/partida', [JuegoController::class, 'start'])->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){
@@ -29,5 +31,8 @@ $app->group('/api', function (RouteCollectorProxy $group){
         $group->patch('/card/{id:[0-9]+}', CardsController::class . ':update');
         $group->delete('/card/{id:[0-9]+}', CardsController::class . ':delete');
     })->add(GetCard::class);
+
+ 
+    
 })->add(RequireAPIKey::class);
 
