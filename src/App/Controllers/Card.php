@@ -11,7 +11,7 @@ use Valitron\Validator;
 
 use function DI\string;
 
-class Cards{
+class Card{
     public function __construct(private CardRepository $repository, private Validator $validator) {
         $this->validator->mapFieldsRules
         ([

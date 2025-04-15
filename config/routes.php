@@ -10,12 +10,17 @@ use App\Controllers\Login;
 use App\Controllers\Profile;
 use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
+use App\Controllers\Mazo;
+
 
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', Signup::class . ':create' );
     $group->post('/login', Login::class . ':create' );
     $group->get('/logout', Login::class . ':destroy');
     $group->get('/profile', Profile::class . ':show')->add(RequireLogin::class);
+    $group->get('/usuarios/{usuario}/mazos', Mazo::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
+
+
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){

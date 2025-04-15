@@ -15,7 +15,7 @@ class UserRepository{
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':name', $data['name']);
         $stmt->bindValue(':user_name', $data['user_name']);
-        $stmt->bindValue(':password_hash', $data['password_hash']);
+        $stmt->bindValue(':password', $data['password_hash']);
         $stmt->bindValue(':api_key', $data['api_key']);
         $stmt->bindValue(':api_key_expiration', $data['api_key_expiration']);
 

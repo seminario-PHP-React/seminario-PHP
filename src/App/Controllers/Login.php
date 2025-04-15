@@ -6,30 +6,29 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-
 use App\Repositories\UserRepository;
 
-class Login{
-    public function __construct(private UserRepository $repository){
-        
-    }
-    public function create(Request $request, Response $response): Response
-    {
-        $data = $request->getParsedBody(); 
-        $user = $this->repository->find('usuario', $data['user']);
-        
-        if ($user && password_verify($data['password'], $user['password_hash'])) {
-            $_SESSION['user_id'] = $user['id']; // Updated to match RequireLogin middleware
+class Login {
+    public function __construct(private UserRepository $repository) {}
 
-            $response->getBody()->write('Logged in');
-            return $response->withStatus(200);
-        }
+    public function create(Request $request, Response $response): Response
+{
+    $data = $request->getParsedBody(); 
+    $user = $this->repository->find('usuario', $data['user']);
     
-        $response->getBody()->write('Unauthorized');
-        return $response->withStatus(401);
+    if ($user && password_verify($data['password'], $user['password'])) {
+        $_SESSION['user_id'] = $user['id'];
+        $response->getBody()->write('Logged in');
+        return $response->withStatus(200);
     }
-    
-    public function destroy(Request $request, Response $response): Response{
+
+    $response->getBody()->write('Unauthorized');
+    return $response->withStatus(401);
+}
+
+
+    public function destroy(Request $request, Response $response): Response
+    {
         session_destroy();
         $response->getBody()->write('Logged out');
         return $response->withStatus(302);
