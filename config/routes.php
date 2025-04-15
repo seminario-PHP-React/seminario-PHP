@@ -34,3 +34,4 @@ $app->group('/api', function (RouteCollectorProxy $group){
     })->add(GetCard::class);
 })->add(RequireAPIKey::class);
 
+?>

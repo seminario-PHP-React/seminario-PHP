@@ -34,3 +34,4 @@ $app->add(new AddJsonResponseHeader);
 require '../../config/routes.php';
 
 $app->run();
+
