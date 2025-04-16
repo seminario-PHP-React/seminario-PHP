@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\MazoModel;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Repositories\MazoRepository;
 
-class Mazo {
+class MazoController {
 
-    public function __construct(private MazoRepository $repo) {
+    public function __construct(private MazoModel $model) {
     }
 
        
@@ -22,7 +22,7 @@ class Mazo {
             return $response->withStatus(401);
         }
 
-        $mazos = $this->repo->getUserMazos($usuario['id']);
+        $mazos = $this->model->getUserMazos($usuario['id']);
         $response->getBody()->write(json_encode($mazos));
         return $response->withHeader("Content-Type", "application/json");
     }
