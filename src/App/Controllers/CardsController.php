@@ -6,13 +6,13 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Repositories\CardRepository;
+use App\Model\CardModel;
 use Valitron\Validator;
 
 use function DI\string;
 
-class Card{
-    public function __construct(private CardRepository $repository, private Validator $validator) {
+class CardsController{
+    public function __construct(private CardModel $model, private Validator $validator) {
         $this->validator->mapFieldsRules
         ([
             'name' => ['required'],
@@ -40,7 +40,7 @@ class Card{
 
             return $response->withStatus(422);
         }
-        $id = $this->repository->create($body);
+        $id = $this->model->create($body);
         $body = json_encode([
             'message' => 'Product created',
             'id' => $id
@@ -60,7 +60,7 @@ class Card{
 
             return $response->withStatus(422);
         }
-        $rows = $this->repository->update((int) $id, $body);
+        $rows = $this->model->update((int) $id, $body);
         $body = json_encode([
             'message' => 'Product updated',
             'rows' => $rows
@@ -70,7 +70,7 @@ class Card{
         return $response;
     }
     public function delete(Request $request, Response $response, string $id): Response{
-        $rows = $this->repository->delete($id);
+        $rows = $this->model->delete($id);
         $body = json_encode([
             'message' => 'Product deleted',
             'rows'=> $rows
