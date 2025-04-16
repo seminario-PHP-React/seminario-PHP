@@ -6,11 +6,13 @@ use App\Controllers\CardsController;
 use App\Controllers\SignupController;
 use App\Controllers\LoginController;
 use App\Controllers\ProfileController;
+use App\Controllers\MazoController;
 
 use App\Middleware\RequireAPIKey;
 use App\Middleware\GetCard;
 use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
+
 
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', SignupController::class . ':create' );
@@ -19,6 +21,9 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
+
+
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){
@@ -31,3 +36,4 @@ $app->group('/api', function (RouteCollectorProxy $group){
     })->add(GetCard::class);
 })->add(RequireAPIKey::class);
 
+?>
