@@ -19,7 +19,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/logout', Login::class . ':destroy');
     $group->get('/profile', Profile::class . ':show')->add(RequireLogin::class);
     $group->get('/usuarios/{usuario}/mazos', Mazo::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
-
+    $group->delete('/mazos/{id}', Mazo::class . ':delete')->add(RequireLogin::class); 
 
 })->add(ActivateSession::class);
 

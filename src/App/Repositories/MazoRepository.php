@@ -9,11 +9,41 @@ class MazoRepository {
     public function __construct(Database $database) {
         $this->db = $database->getConnection(); 
     }
-    
 
     public function getUserMazos(int $usuario_id): array {
         $stmt = $this->db->prepare("SELECT id, nombre FROM mazo WHERE usuario_id = :usuario_id"); 
         $stmt->execute(['usuario_id' => $usuario_id]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC); // devuelve un array asociativo
     }
+
+    // chequeamos si el mazo es del usuario
+    public function mazoPerteneceAUsuario(int $mazoId, int $usuarioId): bool {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM mazo WHERE id = :mazoId AND usuario_id = :usuarioId");
+        $stmt->execute([
+            'mazoId' => $mazoId,
+            'usuarioId' => $usuarioId
+        ]);
+        return (bool) $stmt->fetchColumn();
+    }
+        
+    //se tienen que eliminar las cartas asociadas a ese mazo y el mazo
+    public function eliminarMazoConCartas(int $mazoId): int {
+        $this->db->beginTransaction(); // se hace una transaccion para evitar que se borren algunas cosas si y otras no
+        try {
+            // elimina las cartas del mazo
+            $stmtCartas = $this->db->prepare("DELETE FROM carta_mazo WHERE mazo_id = :mazoId");
+            $stmtCartas->execute(['mazoId' => $mazoId]);
+    
+            // elimina el mazo
+            $stmtMazo = $this->db->prepare("DELETE FROM mazo WHERE id = :mazoId");
+            $stmtMazo->execute(['mazoId' => $mazoId]);
+    
+            $this->db->commit();
+            return $stmtMazo->rowCount(); // 1 si elimino el mazo correctamente
+        } catch (\PDOException $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+    
 }
