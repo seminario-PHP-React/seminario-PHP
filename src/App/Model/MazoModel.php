@@ -3,7 +3,7 @@ namespace App\Repositories;
 
 use App\Database;
 
-class MazoRepository {
+class MazoModel {
     private \PDO $db; // variable para conectarse a bd
 
     public function __construct(Database $database) {
