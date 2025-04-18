@@ -1,9 +1,10 @@
 <?php
 
 use App\Database;
-use App\Repositories\UserRepository;
-use App\Repositories\MazoRepository;
-use App\Controllers\Mazo;
+//use App\Model\UserRepository;
+use App\Model\MazoModel;
+use App\Controllers\MazoController;
+
 
 return [
     Database::class => function () {
@@ -19,11 +20,11 @@ return [
         return new UserRepository($container->get(Database::class));
     },
 
-    MazoRepository::class => function ($container) {
-        return new MazoRepository($container->get(Database::class));
+    MazoModel::class => function ($container) {
+        return new MazoModel($container->get(Database::class));
     },
 
-    Mazo::class => function ($container) {
-        return new Mazo($container->get(MazoRepository::class));
+    MazoController::class => function ($container) {
+        return new MazoController($container->get(MazoModel::class));
     }
 ];

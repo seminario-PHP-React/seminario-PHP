@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories;
+namespace App\Model;
 
 use App\Database;
 
@@ -28,10 +28,23 @@ class MazoModel {
         
     //se tienen que eliminar las cartas asociadas a ese mazo y el mazo
     public function eliminarMazoConCartas(int $mazoId): int {
+       
+        // Verifica si el mazo participo en una partida
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) FROM partida 
+            WHERE mazo_id = :mazoId
+        ");
+        $stmt->execute(['mazoId' => $mazoId]);
+
+        if ((int)$stmt->fetchColumn() > 0) {
+            throw new \Exception("El mazo ha participado de una partida y no puede ser eliminado");
+        }
+
+        // sino, eliminamos primero las cartas y luego el mazo
         $this->db->beginTransaction(); // se hace una transaccion para evitar que se borren algunas cosas si y otras no
         try {
             // elimina las cartas del mazo
-            $stmtCartas = $this->db->prepare("DELETE FROM carta_mazo WHERE mazo_id = :mazoId");
+            $stmtCartas = $this->db->prepare("DELETE FROM mazo_carta WHERE mazo_id = :mazoId");
             $stmtCartas->execute(['mazoId' => $mazoId]);
     
             // elimina el mazo

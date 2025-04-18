@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Repositories\MazoModel;
+use App\Model\MazoModel;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -16,7 +16,7 @@ class MazoController {
     public function getUserMazos(Request $request, Response $response, string $usuario_id): Response {
         $usuario = $request->getAttribute('usuario');
 
-        // Validar que el usuario consultado sea el mismo que está logueado
+        // Valida que el usuario consultado sea el mismo que esta logueado
         if ((int)$usuario_id !== (int)$usuario['id']) {
             $response->getBody()->write(json_encode(["error" => "No autorizado"]));
             return $response->withStatus(401);
@@ -31,16 +31,16 @@ class MazoController {
         $usuario = $request->getAttribute('usuario'); // usuario logueado
     
         // validamos que el mazo sea del usuario 
-        if (! $this->repo->mazoPerteneceAUsuario((int) $id, (int) $usuario['id'])) {
+        if (! $this->model->mazoPerteneceAUsuario((int) $id, (int) $usuario['id'])) {
             $response->getBody()->write(json_encode(["error" => "No autorizado para eliminar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
     
         try {
             // intenta eliminar mazo --> si falla continua con el catch
-            $this->repo->eliminarMazoConCartas((int)$id);
+            $this->model->eliminarMazoConCartas((int)$id);
     
-            // Si se pudo eliminar
+            // si se pudo eliminar
             $response->getBody()->write(json_encode(["message" => "Mazo eliminado"]));
             return $response->withStatus(200);
     
@@ -48,12 +48,20 @@ class MazoController {
             // si el error fue porq participo en una partida
             if ($e->getMessage() === "El mazo ha participado de una partida y no puede ser eliminado") {
                 $response->getBody()->write(json_encode(["error" => $e->getMessage()]));
-                return $response->withStatus(409); 
+                return $response->withStatus(409);
             }
     
             // otros errores
-            $response->getBody()->write(json_encode(["error" => "Error interno del servidor"]));
+            //$response->getBody()->write(json_encode(["error" => "Error interno del servidor"]));
+            $response->getBody()->write(json_encode([
+                "error" => "Error interno del servidor",
+                "mensaje" => $e->getMessage(),
+                "linea" => $e->getLine(),
+                "archivo" => $e->getFile()
+            ]));
+            
             return $response->withStatus(500);
+
         }
     }
     
