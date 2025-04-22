@@ -16,13 +16,18 @@ use App\Middleware\RequireLogin;
 
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', SignupController::class . ':create' );
+   
     $group->post('/login', LoginController::class . ':create' );
     $group->get('/logout', LoginController::class . ':destroy');
+  
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+    
     $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
     $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); 
+    $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
+
 
 })->add(ActivateSession::class);
 

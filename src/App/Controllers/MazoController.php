@@ -64,6 +64,63 @@ class MazoController {
 
         }
     }
+
+    public function create(Request $request, Response $response): Response {
+        $usuario = $request->getAttribute('usuario');
+        $data = $request->getParsedBody();
+    
+        // Si no existe nombre o array de cartas --> faltan datos
+        if (!isset($data['nombre'], $data['cartas']) || !is_array($data['cartas'])) {
+            $response->getBody()->write(json_encode(["error" => "Faltan datos requeridos (nombre o cartas)"]));
+            return $response->withStatus(400)->withHeader("Content-Type", "application/json");
+        }
+    
+        $nombre = trim($data['nombre']);    // elimina espacios en blanco
+        $cartas = $data['cartas'];          
+    
+        switch (true) {
+            case count($cartas) > 5:
+                $mensaje = "Máximo 5 cartas por mazo";
+                break;
+        
+            case count($cartas) !== count(array_unique($cartas)):
+                $mensaje = "No se permiten cartas repetidas";
+                break;
+        
+            case ! $this->model->existenCartas($cartas):
+                $mensaje = "Una o más cartas no existen";
+                break;
+        
+            case $this->model->cantidadMazosUsuario($usuario['id']) == 3:
+                $mensaje = "Jugador con 3 mazos";
+                break;
+        }
+        
+        if (isset($mensaje)) {
+            $response->getBody()->write(json_encode(["error" => $mensaje]));
+            return $response->withStatus(400)->withHeader("Content-Type", "application/json");
+        }
+            
+    
+        // Intentar crear el mazo
+        try {
+            $mazoId = $this->model->crearMazo($usuario['id'], $nombre, $cartas);
+    
+            $response->getBody()->write(json_encode([
+                "id" => $mazoId,
+                "nombre" => $nombre
+            ]));
+            return $response->withStatus(201)->withHeader("Content-Type", "application/json");
+    
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode([
+                "error" => "Error al crear el mazo",
+                "mensaje" => $e->getMessage()
+            ]));
+            return $response->withStatus(400)->withHeader("Content-Type", "application/json");
+        }
+    }
+    
     
 
 

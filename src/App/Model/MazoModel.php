@@ -10,6 +10,55 @@ class MazoModel {
         $this->db = $database->getConnection(); 
     }
 
+    public function existenCartas(array $cartas): bool {
+        if (empty($cartas)) {
+            return false;
+        }
+
+        $placeholders =  implode(',', array_fill(0, count($cartas), '?'));
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM carta WHERE id IN ($placeholders)");
+        $stmt->execute($cartas);
+        return ((int)$stmt->fetchColumn()) === count($cartas);
+    }
+
+    public function cantidadMazosUsuario(int $usuario_id): int {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM mazo WHERE usuario_id = :usuario_id");
+        $stmt->execute(['usuario_id' => $usuario_id]);
+        return (int)$stmt->fetchColumn();
+    }
+    
+
+    public function crearMazo(int $usuarioId, string $nombre, array $cartas): int {
+        $this->db->beginTransaction(); 
+        try {
+            // inserto mazo
+            $stmtMazo = $this->db->prepare("INSERT INTO mazo (usuario_id, nombre) VALUES (:usuario_id, :nombre)");
+            $stmtMazo->execute([
+                'usuario_id' => $usuarioId, 
+                'nombre' => $nombre
+            ]);
+            $mazoId = (int)$this->db->lastInsertId(); // genera el id de manera autoincremental
+            
+            $stmtCarta = $this->db->prepare("INSERT INTO mazo_carta (mazo_id, carta_id, estado) VALUES (:mazo_id, :carta_id, 'en_mazo')");
+            
+            // por cada carta en el array inserto una fila
+            foreach ($cartas as $cartaId) { 
+                $stmtCarta->execute([
+                    'mazo_id' => $mazoId,
+                    'carta_id' => $cartaId
+                ]);
+            }
+
+            $this->db->commit();
+            return $mazoId;
+        } catch (\PDOException $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+
+
+    }
+
     public function getUserMazos(int $usuario_id): array {
         $stmt = $this->db->prepare("SELECT id, nombre FROM mazo WHERE usuario_id = :usuario_id"); 
         $stmt->execute(['usuario_id' => $usuario_id]);
@@ -58,5 +107,7 @@ class MazoModel {
             throw $e;
         }
     }
+
+
     
 }
