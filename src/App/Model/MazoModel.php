@@ -59,6 +59,31 @@ class MazoModel {
 
     }
 
+    public function nombreMazoExiste(int $usuarioId, string $nombre, int $mazoIdActual): bool {
+        // verifica si existe el nombre del mazo 
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) FROM mazo 
+            WHERE usuario_id = :usuario_id AND nombre = :nombre AND id != :mazo_id
+        ");
+
+        $stmt->execute([
+            'usuario_id' => $usuarioId,
+            'nombre' => $nombre,
+            'mazo_id' => $mazoIdActual
+        ]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+    
+
+    public function editarNombreMazo(int $mazoId, string $nuevoNombre): void {
+        $stmt = $this->db->prepare("UPDATE mazo SET nombre = :nombre WHERE id = :id");
+        $stmt->execute([
+            'nombre' => $nuevoNombre,
+            'id' => $mazoId
+        ]);
+    }
+
     public function getUserMazos(int $usuario_id): array {
         $stmt = $this->db->prepare("SELECT id, nombre FROM mazo WHERE usuario_id = :usuario_id"); 
         $stmt->execute(['usuario_id' => $usuario_id]);

@@ -27,7 +27,8 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
     $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); 
     $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
-
+    $group->put('/mazos/{id}', MazoController::class . ':update')->add(RequireLogin::class);
+ 
 
 })->add(ActivateSession::class);
 

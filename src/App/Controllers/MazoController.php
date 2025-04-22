@@ -12,7 +12,7 @@ class MazoController {
     public function __construct(private MazoModel $model) {
     }
 
-       
+    // Obtener mazos del usuario
     public function getUserMazos(Request $request, Response $response, string $usuario_id): Response {
         $usuario = $request->getAttribute('usuario');
 
@@ -27,6 +27,7 @@ class MazoController {
         return $response->withHeader("Content-Type", "application/json");
     }
 
+    // Eliminar mazo
     public function delete(Request $request, Response $response, string $id): Response {
         $usuario = $request->getAttribute('usuario'); // usuario logueado
     
@@ -65,6 +66,7 @@ class MazoController {
         }
     }
 
+    // Crear nuevo mazo
     public function create(Request $request, Response $response): Response {
         $usuario = $request->getAttribute('usuario');
         $data = $request->getParsedBody();
@@ -121,6 +123,44 @@ class MazoController {
         }
     }
     
+    // Editar nombre del mazo
+    public function update(Request $request, Response $response, string $id): Response {
+        $usuario = $request->getAttribute('usuario');
+        $data = $request->getParsedBody();
+    
+        // verifica recepcion de parametros
+        if (!isset($data['nombre']) || trim($data['nombre']) === '') {
+            $response->getBody()->write(json_encode(["error" => "Nombre requerido"]));
+            return $response->withStatus(400)->withHeader("Content-Type", "application/json");
+        }
+    
+        $nuevoNombre = trim($data['nombre']); // elimina espacios
+        
+        // verifica que no exista otro mazo con ese nombre
+        if ($this->model->nombreMazoExiste($usuario['id'], $nuevoNombre, (int)$id)) {
+        $response->getBody()->write(json_encode(["error" => "Ya existe un mazo con ese nombre"]));
+        return $response->withStatus(409)->withHeader("Content-Type", "application/json");
+    }
+
+
+        if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario['id'])) {
+            $response->getBody()->write(json_encode(["error" => "No autorizado para editar este mazo"]));
+            return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
+        }
+    
+        try {
+            $this->model->editarNombreMazo((int)$id, $nuevoNombre);
+    
+            $response->getBody()->write(json_encode(["message" => "Nombre actualizado"]));
+            return $response->withStatus(200)->withHeader("Content-Type", "application/json");
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode([
+                "error" => "Error al actualizar el nombre",
+                "mensaje" => $e->getMessage()
+            ]));
+            return $response->withStatus(500)->withHeader("Content-Type", "application/json");
+        }
+    }
     
 
 
