@@ -34,11 +34,13 @@ $app->group('', function (RouteCollectorProxy $group){
 
 $app->group('/api', function (RouteCollectorProxy $group){
     $group->post('/card', [CardsController::class, 'create']);
+    $group->get('/card/{atributo:[A-Za-z]+}/{nombre:[A-Za-z]+}', CardsController::class . ':showByData');
+
 
     $group->group('', function (RouteCollectorProxy $group){
         $group->get('/card/{id:[0-9]+}', CardsController::class .  ':show');
         $group->patch('/card/{id:[0-9]+}', CardsController::class . ':update');
-        $group->delete('/card/{id:[0-9]+}', CardsController::class . ':delete');
+        $group->delete('/card/{id:[0-9]+}', CardsController::class . ':delete');    
     })->add(GetCard::class);
 })->add(RequireAPIKey::class);
 
