@@ -16,6 +16,39 @@ class CardModel
         $stmt = $pdo->query("SELECT * FROM carta");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getCardByData(string $atributo, string $nombre): array {
+        $pdo = $this->database->getConnection();
+        
+        // Verifica si la consulta está bien escrita
+        $sql = "
+            SELECT C.id, C.nombre, C.ataque, C.ataque_nombre, C.imagen, A.nombre AS atributo_nombre
+            FROM carta AS C
+            LEFT JOIN atributo AS A ON C.atributo_id = A.id
+            WHERE A.nombre = :atributo AND C.nombre = :nombre;
+        ";
+        
+        // Preparar y ejecutar la consulta
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':atributo', $atributo, PDO::PARAM_STR);
+        $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+        $stmt->execute();
+        
+        // Mostrar los resultados para depuración
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        if (empty($result)) {
+            // Si no hay resultados, devuelve un array vacío
+            return [];
+        }
+    
+        return $result;
+    }
+    
+    
+    
+    
+    
     public function getById(int $id): array|bool {
         $sql = 'SELECT * FROM carta WHERE id = :id';
         $pdo = $this->database->getConnection();

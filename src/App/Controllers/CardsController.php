@@ -29,6 +29,29 @@ class CardsController{
         $response->getBody()->write($body);
         return $response;
     }
+
+    public function showByData(Request $request, Response $response, string $atributo, string $nombre): Response 
+    {
+        // Normalización
+        $atributo = ucfirst(strtolower($atributo));
+        $nombre = ucfirst(strtolower($nombre));
+
+        $rows = $this->model->getCardByData($atributo, $nombre);
+        if (empty($rows)) {
+            $response->getBody()->write(json_encode([
+                'error' => 'Carta no encontrada con ese atributo y nombre.'
+            ])); 
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+    
+        $response->getBody()->write(json_encode($rows));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
+
+    
+
+
+
     public function create(Request $request, Response $response): Response{
         $body =  $request->getParsedBody();
 
@@ -77,5 +100,6 @@ class CardsController{
         ]);
         $response->getBody()->write($body);
         return $response;
+        
     }
 }

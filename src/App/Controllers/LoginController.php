@@ -24,7 +24,7 @@ class LoginController{
             return $response->withStatus(400);
         }     
         
-        if ($user && $user['nombre'] === $data['name']  && password_verify($data['password'], $user['password_hash'])) {
+        if ($user && $user['nombre'] === $data['name']  && password_verify($data['password'], $user['password'])) {
             $_SESSION['user_id'] = $user['id']; 
             
             // Obtener la fecha de expiración del usuario

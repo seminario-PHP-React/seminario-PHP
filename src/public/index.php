@@ -10,11 +10,14 @@ use App\Middleware\AddJsonResponseHeader;
 
 
 
+require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-require '../../vendor/autoload.php';
+//require '../../vendor/autoload.php';
 $builder = new ContainerBuilder;
 
-$container = $builder->addDefinitions('../../config/definitions.php')->build();
+$container = $builder->addDefinitions(dirname(__DIR__, 2) . '/config/definitions.php')->build();
+//$container = $builder->addDefinitions('../../config/definitions.php')->build();
+
 
 AppFactory::setContainer($container);
 
@@ -31,3 +34,4 @@ $app->add(new AddJsonResponseHeader);
 require '../../config/routes.php';
 
 $app->run();
+
