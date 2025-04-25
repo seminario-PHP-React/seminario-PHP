@@ -26,4 +26,5 @@ class PartidaModel{
         $stmt->execute();
         return $pdo->lastInsertId();
     }
+    
 }

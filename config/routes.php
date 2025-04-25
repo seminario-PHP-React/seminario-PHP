@@ -6,7 +6,7 @@ use App\Controllers\CardsController;
 use App\Controllers\SignupController;
 use App\Controllers\LoginController;
 use App\Controllers\ProfileController;
-use App\Controllers\JuegoController;
+use App\Controllers\PartidaController;
 use App\Controllers\MazoController;
 
 use App\Middleware\RequireAPIKey;
@@ -24,12 +24,13 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
-    $group->post('/partida', [JuegoController::class, 'start'])->add(RequireLogin::class);
+
+    $group->post('/partida', [PartidaController::class, 'start'])->add(RequireLogin::class);
     
-    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // utilizo path solicitado
-    $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); 
+    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // TODO  validar que usuario sean palabras
+    $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); // TODO  validar que id sean numeros
     $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
-    $group->put('/mazos/{id}', MazoController::class . ':update')->add(RequireLogin::class);
+    $group->put('/mazos/{id}', MazoController::class . ':update')->add(RequireLogin::class); // TODO  validar que id sean numeros
  
 
 })->add(ActivateSession::class);
