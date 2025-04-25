@@ -1,7 +1,7 @@
 <?php
 
 use App\Database;
-//use App\Model\UserRepository;
+use App\Model\UserModel;
 use App\Model\MazoModel;
 use App\Controllers\MazoController;
 
@@ -13,11 +13,11 @@ return [
             name: 'seminariophp',
             user: 'root',
             password: ''
-        );
+        );          
     },
 
-    UserRepository::class => function ($container) {
-        return new UserRepository($container->get(Database::class));
+    UserModel::class => function ($container) {
+        return new UserModel($container->get(Database::class));
     },
 
     MazoModel::class => function ($container) {
