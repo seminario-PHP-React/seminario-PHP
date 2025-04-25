@@ -11,12 +11,12 @@ class UserModel{
         
     }
     public function create(array $data):void{
-        $sql = "INSERT INTO usuario (nombre, usuario, password_hash, token, vencimiento_token ) VALUES (:name, :user_name, :password_hash, :api_key, :api_key_expiration)";
+        $sql = "INSERT INTO usuario (nombre, usuario, password, token, vencimiento_token ) VALUES (:name, :user_name, :password_hash, :api_key, :api_key_expiration)";
         $pdo = $this->database ->getConnection();
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':name', $data['name']);
         $stmt->bindValue(':user_name', $data['user_name']);
-        $stmt->bindValue(':password', $data['password_hash']);
+        $stmt->bindValue(':password_hash', $data['password_hash']);
         $stmt->bindValue(':api_key', $data['api_key']);
         $stmt->bindValue(':api_key_expiration', $data['api_key_expiration']);
 
