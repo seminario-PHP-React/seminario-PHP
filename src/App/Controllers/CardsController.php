@@ -40,7 +40,7 @@ class CardsController{
         if (empty($rows)) {
             $response->getBody()->write(json_encode([
                 'error' => 'Carta no encontrada con ese atributo y nombre.'
-            ]));
+            ])); 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
     
