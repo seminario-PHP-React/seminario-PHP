@@ -43,7 +43,7 @@ class PartidaController {
             $response->getBody()->write(json_encode('Falta contenido ')); 
         return $response
             ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);  
+            ->withStatus(400);  
         }
         
         $id = $this->model->create($partidaData); 
@@ -60,6 +60,54 @@ class PartidaController {
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
         
+    }
+    public function cartasEnMano(Request $request, Response $response, string $usuario, string $partida): Response {
+        $user = $request->getAttribute('usuario');
+        
+       
+        if ($usuario != $user['id']) {
+            $response->getBody()->write(json_encode(['error' => 'Usuario no válido o no pertenece al usuario']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    
+       
+        $mazo = $this->model->getMazoPorPartida($partida, $usuario); 
+    
+        if (!$mazo) {
+
+            $response->getBody()->write(json_encode(['error' => 'Esta partida no existe o no pertenece a este usuario']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            
+        }
+    
+        if ($mazo['estado'] !== 'en_curso') {
+            $response->getBody()->write(json_encode(['error' => 'La partida no se encuentra en curso']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+    
+        
+    
+        
+        $cartasRestantes = $this->model->getCartasMano($usuario, $partida);
+    
+        
+        $payload = [];
+    
+        
+        foreach ($cartasRestantes as $cartasR) {
+            
+            $payload[] = [
+                'ID carta' => $cartasR['carta_id'],
+                'Nombre del pokemon' => $cartasR['nombre'],
+                'Nombre del ataque' => $cartasR['ataque_nombre']
+            ];
+        }
+    
+        
+        $response->getBody()->write(json_encode($payload)); 
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
     }
     
     
