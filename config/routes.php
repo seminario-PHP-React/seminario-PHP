@@ -8,6 +8,7 @@ use App\Controllers\LoginController;
 use App\Controllers\ProfileController;
 use App\Controllers\PartidaController;
 use App\Controllers\MazoController;
+use App\Controllers\EstadisticasController;
 
 use App\Middleware\RequireAPIKey;
 use App\Middleware\GetCard;
@@ -50,4 +51,5 @@ $app->group('/api', function (RouteCollectorProxy $group){
     
 })->add(RequireAPIKey::class);
 
+$app->get('/api/estadisticas', EstadisticasController::class . ':show');
 ?>
