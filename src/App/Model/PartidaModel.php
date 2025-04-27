@@ -63,5 +63,43 @@ class PartidaModel{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    public function getCartasMano($usuario, $partida) {
+        $query= "
+            SELECT mc.carta_id, c.nombre, c.ataque_nombre, a.nombre AS atributo_nombre FROM partida p 
+            LEFT JOIN mazo m ON m.id = p.mazo_id
+            LEFT JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
+            LEFT JOIN carta c ON mc.carta_id = c.id
+            LEFT JOIN atributo a ON c.atributo_id = a.id
+            WHERE p.id = :partida AND p.usuario_id = :usuario AND mc.estado = 'en_mazo';
+        ";
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':partida', $partida, PDO::PARAM_INT); 
+        $stmt->bindParam(':usuario', $usuario, PDO::PARAM_INT);   
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getMazoPorPartida($partida, $usuario): array| bool {
+        
+        $query = "
+            SELECT p.id, p.usuario_id, p.estado
+            FROM partida p
+            LEFT JOIN mazo m ON p.mazo_id = m.id
+            WHERE p.id = :partida AND p.usuario_id = :usuario;
+
+        ";
+    
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':partida', $partida, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario', $usuario, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC); 
+    }
+    
+  
+    
     
 }

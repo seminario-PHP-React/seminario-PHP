@@ -26,7 +26,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 
     $group->post('/partida', [PartidaController::class, 'start'])->add(RequireLogin::class);
-    
+    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano'])->add(RequireLogin::class);
     $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // TODO  validar que usuario sean palabras
     $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); // TODO  validar que id sean numeros
     $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
