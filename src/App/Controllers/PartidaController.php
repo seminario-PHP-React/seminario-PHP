@@ -23,7 +23,7 @@ class PartidaController {
         }
     
        
-        $mazo = $this->model->find($data['mazo']);
+        $mazo = $this->model->find($data['mazo'], $user['id']);
 
         if (!$mazo || !isset($mazo['usuario_id']) || $mazo['usuario_id'] != $user['id']) {
             
@@ -48,7 +48,7 @@ class PartidaController {
         
         $id = $this->model->create($partidaData); 
         
-        $cartas = $this->model->getCartas(2); 
+        $cartas = $this->model->getCartas($data['mazo']); 
         
         $payload = [
             'partida_id' => $id,

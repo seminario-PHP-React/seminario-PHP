@@ -9,10 +9,11 @@ use App\Controllers\ProfileController;
 use App\Controllers\PartidaController;
 use App\Controllers\MazoController;
 use App\Controllers\EstadisticasController;
-
+use App\Controllers\JugadaController;
 use App\Middleware\RequireAPIKey;
 use App\Middleware\GetCard;
 use App\Middleware\ActivateSession;
+use App\Middleware\AddJsonResponseHeader;
 use App\Middleware\RequireLogin;
 
 
@@ -33,7 +34,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
     $group->put('/mazos/{id}', MazoController::class . ':update')->add(RequireLogin::class); // TODO  validar que id sean numeros
  
-
+    $group->post('/jugadas', [JugadaController::class, 'registrarJugada'])->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
 $app->group('/api', function (RouteCollectorProxy $group){

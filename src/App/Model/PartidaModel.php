@@ -28,19 +28,20 @@ class PartidaModel{
     
         $updateSql = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
         $updateStmt = $pdo->prepare($updateSql);
-        $updateStmt->bindValue(':estado', 'en_mazo');
+        $updateStmt->bindValue(':estado', 'en_mano');
         $updateStmt->bindValue(':mazo_id', (int)$data['mazo_id'], PDO::PARAM_INT);
         $updateStmt->execute();
     
         return $lastInsertId;
     }
     
-    public function find($id) {
-        $query = "SELECT * FROM mazo WHERE usuario_id = :id";
+    public function find($idMazo, $idUser) {
+        $query = "SELECT * FROM mazo WHERE id = :idMazo AND usuario_id = :idUser";
         $pdo= $this->database->getConnection();
         $stmt = $pdo->prepare($query);
 
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':idMazo', $idMazo, PDO::PARAM_INT);
+        $stmt->bindParam(':idUser', $idUser, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC); 
@@ -70,7 +71,7 @@ class PartidaModel{
             LEFT JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
             LEFT JOIN carta c ON mc.carta_id = c.id
             LEFT JOIN atributo a ON c.atributo_id = a.id
-            WHERE p.id = :partida AND p.usuario_id = :usuario AND mc.estado = 'en_mazo';
+            WHERE p.id = :partida AND p.usuario_id = :usuario AND mc.estado = 'en_mano';
         ";
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
@@ -98,7 +99,29 @@ class PartidaModel{
     
         return $stmt->fetch(PDO::FETCH_ASSOC); 
     }
+
+    public function actualizarEstadoPartida(string $estado, int $partidaId){
+        $updateSql = 'UPDATE partida P SET estado = :estado WHERE P.id = :partidaId';
+        $pdo = $this->database->getConnection();
+        $updateStmt = $pdo->prepare($updateSql);
+        $updateStmt->bindValue(':estado', $estado, PDO::PARAM_STR);
+        $updateStmt->bindValue(':partidaId', $partidaId, PDO::PARAM_INT);
+        
+        // Ejecutar la consulta
+        $updateStmt->execute();
+    }
     
+    public function encontrarMazoPorPartida(int $partidaId ){
+        // Consulta para obtener el mazo de la partida
+        $query = 'SELECT mazo_id FROM partida WHERE id = :partidaId';
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':partidaId', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $mazo = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $mazo['mazo_id'];
+
+    }
   
     
     

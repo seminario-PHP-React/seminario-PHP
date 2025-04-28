@@ -132,7 +132,32 @@ class MazoModel {
             throw $e;
         }
     }
+    public function cartasEnMano(int $mazoId): array {
+        $query = 'SELECT MC.carta_id FROM mazo M
+        LEFT JOIN mazo_carta MC ON MC.mazo_id = :mazoId
+        WHERE MC.estado = \'en_mano\' AND m.usuario_id = 1';
+
+        $stmt = $this->db->prepare($query);
+
+        $stmt->execute(['mazoId' => $mazoId]);
+       
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarEstadoMazo(string $estado, int $mazoId){
+        $query = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazoId';
+        $stmt = $this->db->prepare($query);
+
+        $stmt->execute(['mazoId' => $mazoId,
+        'estado'=> $estado
+        ]);
+       
+        $stmt->execute();
 
 
+    }
+   
     
 }
