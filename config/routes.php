@@ -16,25 +16,35 @@ use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
 
 
+// En tu archivo principal (por ejemplo, index.php o bootstrap.php)
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');  // Cargar el archivo .env desde el directorio raíz
+$dotenv->load();
+
+
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', SignupController::class . ':create' );
-   
     $group->post('/login', LoginController::class . ':create' );
     $group->get('/logout', LoginController::class . ':destroy');
-  
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/api_key', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 
-    $group->post('/partida', [PartidaController::class, 'start'])->add(RequireLogin::class);
-    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano'])->add(RequireLogin::class);
-    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireLogin::class); // TODO  validar que usuario sean palabras
-    $group->delete('/mazos/{id}', MazoController::class . ':delete')->add(RequireLogin::class); // TODO  validar que id sean numeros
-    $group->post('/mazos', MazoController::class . ':create')->add(RequireLogin::class); 
-    $group->put('/mazos/{id}', MazoController::class . ':update')->add(RequireLogin::class); // TODO  validar que id sean numeros
- 
-
 })->add(ActivateSession::class);
+
+
+$app->group('', function (RouteCollectorProxy $group){
+    $group->post('/partida', [PartidaController::class, 'start']);
+    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano']);
+    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos'); // TODO  validar que usuario sean palabras
+    $group->delete('/mazos/{id}', MazoController::class . ':delete'); // TODO  validar que id sean numeros
+    $group->post('/mazos', MazoController::class . ':create');
+    $group->put('/mazos/{id}', MazoController::class . ':update'); // TODO  validar que id sean numeros
+ 
+})->add(RequireAPIKey::class);
+
+
 
 $app->group('/api', function (RouteCollectorProxy $group){
     $group->post('/card', [CardsController::class, 'create']);

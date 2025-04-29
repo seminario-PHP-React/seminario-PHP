@@ -25,7 +25,7 @@ class RequireLogin
     }
     }
     $response = $this->factory-> createResponse();
-    $response->getBody()->write('You must be logged in to access this page.');
+    $response->getBody()->write(json_encode(['Mensaje' => 'Debes iniciar sesión para acceder a esta página.']));
     return $response->withStatus(401);
     }
 }

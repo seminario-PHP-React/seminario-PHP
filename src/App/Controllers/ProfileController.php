@@ -2,25 +2,30 @@
 
 declare(strict_types=1);
 
-namespace App\Controllers;
 
+namespace App\Controllers;
+require_once __DIR__ . '/../../../config/config.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\UserModel;
 use Valitron\Validator;
+use Valitron\Validator as V;
+
 
 
 
 class ProfileController{
     public function __construct(private UserModel $model, private Validator $validator){
-        
+       
+
     }
     public function showApiKey(Request $request, Response $response): Response
     {
         $user = $request-> getAttribute('usuario');        
         $api_key= $user['token'];
 
-        $response->getBody()->write("API KEY: $api_key");
+   
+        $response->getBody()->write(json_encode(['API KEY' => $api_key]));
         return $response;
     }
 
@@ -46,7 +51,7 @@ class ProfileController{
     $data = $request->getParsedBody() ?? []; // Evita errores si el body es null
 
     if (empty($data)) {
-        $body= json_encode(['error' => 'Debe enviar un campo válido (user o password).']);
+        $body= json_encode(['error' => 'Debe enviar un campo válido (usuario o contraseña).']);
         $response->getBody()->write($body);
         return $response->withStatus(400);
     }
@@ -76,14 +81,14 @@ class ProfileController{
     // Si es actualización de contraseña
     if (isset($data['password']) && isset($data['password_confirmation'])) {
         if ($data['password'] !== $data['password_confirmation']) {
-            $body = json_encode( 'Las contraseñas no coinciden.');
+            $body = json_encode(['Mensaje' =>'Las contraseñas no coinciden.']);
             $response->getBody()->write($body);
             return $response->withStatus(400);
         }
 
         $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
         $this->model->update($user['id'], 'password_hash' , $hashedPassword);
-        $body = json_encode('Password updated succesfully.');
+        $body = json_encode(['Mensaje' =>'Contraseña actualizada con éxito.']);
         $response->getBody()->write($body);
         return $response->withStatus(200);
     }
@@ -91,18 +96,18 @@ class ProfileController{
     // Si es actualización de usuario
     if (isset($data['name'])) {
         if ($this->model->userExists($data['name'])){
-            $response->getBody()->write(json_encode(['error' => 'User already exists']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'El usuario que quiere crear ya existe']));
             return $response->withStatus(400);
         } 
 
         $this->model->update($user['id'], 'nombre', $data['name']);
-        $body= json_encode('User updated succesfully.');
+        $body= json_encode(['Mensaje' =>'Nombre actualizado exitosamente.']);
         $response->getBody()->write($body);
 
         return $response->withStatus(200);
     }
 
-    $body= json_encode('You must send a valid field to update.');
+    $body= json_encode(['Mensaje' =>'Debe enviar un campo válido para actualizar.']);
     $response->getBody()->write($body);
     return $response->withStatus(400);
 }

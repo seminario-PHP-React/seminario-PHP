@@ -6,6 +6,8 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 use App\Model\UserModel;
 
@@ -16,40 +18,50 @@ class LoginController{
     }
     public function create(Request $request, Response $response): Response
     {
-           
-        $data = $request->getParsedBody(); 
-        $user = $this->model->find('usuario', $data['user']);
-        if (!isset($data['user'], $data['name'], $data['password'])) {
-            $response->getBody()->write('Fields are missing');
-            return $response->withStatus(400);
-        }     
-        
-        if ($user && $user['nombre'] === $data['name']  && password_verify($data['password'], $user['password'])) {
-            $_SESSION['user_id'] = $user['id']; 
-            
-            // Obtener la fecha de expiración del usuario
-            $token_exp = strtotime($user['vencimiento_token']); // Convertir a timestamp
+    $data = $request->getParsedBody(); 
 
-            if ($token_exp < time()) {
-                $new_api_key = bin2hex(random_bytes(16));
-                $now = date('Y-m-d H:i:s', strtotime('+1 hour'));  
+    if (!isset($data['user'], $data['name'], $data['password'])) {
+        $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campose en el cuerpo de la solicitud']));
+        return $response->withStatus(401);
+    }    
 
-                // Actualizar el token y la fecha de expiración en la base de datos
-                $this->model->update($user['id'], 'token', $new_api_key);
-                $this->model->update($user['id'], 'vencimiento_token', $now);
-            }
-
-            $response->getBody()->write('Logged in');
-            return $response->withStatus(200);
-        }
-
-        $response->getBody()->write('Unauthorized');
+    $user = $this->model->find('usuario', $data['user']);
+    
+    if ( $user['usuario'] !== $data['user'] || $user['nombre'] !== $data['name'] || !password_verify($data['password'], $user['password'])) {
+        $response->getBody()->write(json_encode(['error' => 'El usuario, el nombre o la contraseña son erroneos']));
         return $response->withStatus(401);
     }
+
+    $_SESSION['user_id'] = $user['id']; 
+
+    $token_exp = strtotime($user['vencimiento_token']);
+    $payload = [
+        'sub' => $user['id'],
+        'name' => $user['nombre'],
+        'iat' => time(),
+        'exp' => time() + 3600
+    ];
+    $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
+
+    if ($token_exp < time()) {
+        $new_api_key = $jwt;
+        $now = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+        $this->model->update($user['id'], 'token', $new_api_key);
+        $this->model->update($user['id'], 'vencimiento_token', $now);
+    }
+    $token= $this->model->getAPIKey($user['id']);
+    $response->getBody()->write(json_encode([
+        'Bienvenido' => $user['nombre'],
+        'Tu token es' =>$token
+    ]));
+    return $response->withStatus(200);
+}
+
     
     public function destroy(Request $request, Response $response): Response{
         session_destroy();
-        $response->getBody()->write('Logged out');
+        $response->getBody()->write(json_encode(['Mensaje'=>'Sesión cerrada con éxito']));
         return $response->withStatus(302);
     }
 }
