@@ -8,9 +8,10 @@ use App\Model\UserModel;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Valitron\Validator;
-
+use Firebase\JWT\JWT;
 
 class SignupController{
+    private const SECRET_KEY = 'mi_clave_re_secreta_y_segura_123';
     public function __construct(private Validator $validator, private UserModel $model){
         $this->validator->mapFieldsRules(
             ['name' => ['required'],
@@ -32,18 +33,33 @@ class SignupController{
         } 
 
         if (! $this->validator->validate()){
-            $response-> getBody()->write(json_encode($this->validator->errors()));
-
+            $response->getBody()->write(json_encode($this->validator->errors()));
             return $response->withStatus(400);
         }
-       
-
+        
+        // Encriptar password
         $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        $api_key = bin2hex(random_bytes(16));
-        $data['api_key'] = $api_key;
-        $data['api_key_expiration'] = date('Y-m-d H:i:s', strtotime('+1 hours', time()));
-        $this->model->create($data);
-        $response-> getBody()->write("Here is your API key: $api_key");
-        return $response;
+        
+        // Crear usuario primero (y que te devuelva su ID)
+        $user_id = $this->model->create($data); // Ojo, que tu método `create` debería devolver el id
+
+        // Ahora sí, generar el JWT
+        $payload = [
+            'sub' => $user_id,              // subject (el ID del usuario)
+            'name' => $data['name'],         // el nombre que envió
+            'iat' => time(),
+            'exp' => time() + 3600
+        ];
+        $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
+
+        // Guardar el JWT como api_key
+        $this->model->updateApiKey($user_id, $jwt, date('Y-m-d H:i:s', strtotime('+1 hours')));
+
+        // Responder
+        $response->getBody()->write(json_encode([
+            'message' => 'User created successfully',
+            'api_key' => $jwt
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
     }
 }

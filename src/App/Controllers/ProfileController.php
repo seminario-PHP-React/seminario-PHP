@@ -20,7 +20,8 @@ class ProfileController{
         $user = $request-> getAttribute('usuario');        
         $api_key= $user['token'];
 
-        $response->getBody()->write("API KEY: $api_key");
+   
+        $response->getBody()->write(json_encode(['API KEY' => $api_key]));
         return $response;
     }
 

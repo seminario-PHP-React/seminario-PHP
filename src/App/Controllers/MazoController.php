@@ -14,25 +14,25 @@ class MazoController {
 
     // Obtener mazos del usuario
     public function getUserMazos(Request $request, Response $response, string $usuario_id): Response {
-        $usuario = $request->getAttribute('usuario');
+        $usuario = $request->getAttribute('user_id');
 
         // Valida que el usuario consultado sea el mismo que esta logueado
-        if ((int)$usuario_id !== (int)$usuario['id']) {
+        if ((int)$usuario_id !== (int)$usuario) {
             $response->getBody()->write(json_encode(["error" => "No autorizado"]));
             return $response->withStatus(401);
         }
 
-        $mazos = $this->model->getUserMazos($usuario['id']);
+        $mazos = $this->model->getUserMazos($usuario);
         $response->getBody()->write(json_encode($mazos));
         return $response->withHeader("Content-Type", "application/json");
     }
 
     // Eliminar mazo
     public function delete(Request $request, Response $response, string $id): Response {
-        $usuario = $request->getAttribute('usuario'); // usuario logueado
+        $usuario = $request->getAttribute('user_id'); // usuario logueado
     
         // validamos que el mazo sea del usuario 
-        if (! $this->model->mazoPerteneceAUsuario((int) $id, (int) $usuario['id'])) {
+        if (! $this->model->mazoPerteneceAUsuario((int) $id, (int) $usuario)) {
             $response->getBody()->write(json_encode(["error" => "No autorizado para eliminar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
@@ -68,7 +68,7 @@ class MazoController {
 
     // Crear nuevo mazo
     public function create(Request $request, Response $response): Response {
-        $usuario = $request->getAttribute('usuario');
+        $usuario = $request->getAttribute('user_id');
         $data = $request->getParsedBody();
     
         // Si no existe nombre o array de cartas --> faltan datos
@@ -93,7 +93,7 @@ class MazoController {
                 $mensaje = "Una o más cartas no existen";
                 break;
         
-            case $this->model->cantidadMazosUsuario($usuario['id']) == 3:
+            case $this->model->cantidadMazosUsuario($usuario) == 3:
                 $mensaje = "Jugador con 3 mazos";
                 break;
         }
@@ -106,7 +106,7 @@ class MazoController {
     
         // Intentar crear el mazo
         try {
-            $mazoId = $this->model->crearMazo($usuario['id'], $nombre, $cartas);
+            $mazoId = $this->model->crearMazo($usuario, $nombre, $cartas);
     
             $response->getBody()->write(json_encode([
                 "id" => $mazoId,
@@ -125,7 +125,7 @@ class MazoController {
     
     // Editar nombre del mazo
     public function update(Request $request, Response $response, string $id): Response {
-        $usuario = $request->getAttribute('usuario');
+        $usuario = $request->getAttribute('user_id');
         $data = $request->getParsedBody();
     
         // verifica recepcion de parametros
@@ -137,13 +137,13 @@ class MazoController {
         $nuevoNombre = trim($data['nombre']); // elimina espacios
         
         // verifica que no exista otro mazo con ese nombre
-        if ($this->model->nombreMazoExiste($usuario['id'], $nuevoNombre, (int)$id)) {
+        if ($this->model->nombreMazoExiste($usuario, $nuevoNombre, (int)$id)) {
         $response->getBody()->write(json_encode(["error" => "Ya existe un mazo con ese nombre"]));
         return $response->withStatus(409)->withHeader("Content-Type", "application/json");
     }
 
 
-        if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario['id'])) {
+        if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario)) {
             $response->getBody()->write(json_encode(["error" => "No autorizado para editar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }

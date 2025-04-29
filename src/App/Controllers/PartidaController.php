@@ -5,11 +5,15 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\PartidaModel;
 
+
 class PartidaController {
     public function __construct(private PartidaModel $model) {}
 
     public function start(Request $request, Response $response): Response {
-        $user = $request->getAttribute('usuario');
+        $user = $request->getAttribute('user_id');
+
+        
+
         $data = $request->getParsedBody(); 
     
         if (!$user) {
@@ -23,16 +27,17 @@ class PartidaController {
         }
     
        
-        $mazo = $this->model->find($data['mazo']);
+        $mazo = $this->model->find($user);
 
-        if (!$mazo || !isset($mazo['usuario_id']) || $mazo['usuario_id'] != $user['id']) {
+       
+        if (!$mazo || !isset($mazo['usuario_id']) || $mazo['usuario_id'] != $user) {
             
             $response->getBody()->write(json_encode(['error' => 'Mazo no válido o no pertenece al usuario']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
     
         $partidaData = [
-            'user_id' => $user['id'],
+            'user_id' => $user,
             'date' => date('Y-m-d H:i:s'),
             'mazo_id' => $data['mazo'], 
             'state' => 'en_curso'
@@ -48,7 +53,7 @@ class PartidaController {
         
         $id = $this->model->create($partidaData); 
         
-        $cartas = $this->model->getCartas(2); 
+        $cartas = $this->model->getCartas($data['mazo']); 
         
         $payload = [
             'partida_id' => $id,
@@ -62,10 +67,11 @@ class PartidaController {
         
     }
     public function cartasEnMano(Request $request, Response $response, string $usuario, string $partida): Response {
-        $user = $request->getAttribute('usuario');
+                $user = $request->getAttribute('user_id');
+
         
        
-        if ($usuario != $user['id']) {
+        if ($usuario != $user) {
             $response->getBody()->write(json_encode(['error' => 'Usuario no válido o no pertenece al usuario']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }

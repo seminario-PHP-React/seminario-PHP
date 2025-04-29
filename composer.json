@@ -4,7 +4,8 @@
         "slim/psr7": "^1.7",
         "slim/php-view": "^3.4",
         "php-di/php-di": "^7.0",
-        "vlucas/valitron": "^1.4"
+        "vlucas/valitron": "^1.4",
+        "firebase/php-jwt": "^6.11"
     },
     "autoload": {
        "psr-4": {
