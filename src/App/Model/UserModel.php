@@ -76,15 +76,24 @@ class UserModel{
         $stmt->execute();
     }
     public function findById(int $userId): ?array
-{
-    $sql = "SELECT * FROM usuario WHERE id = :user_id";
-    $pdo = $this->database->getConnection();
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindValue(':user_id', $userId);
-    $stmt->execute();
+    {
+        $sql = "SELECT * FROM usuario WHERE id = :user_id";
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', $userId);
+        $stmt->execute();
 
-    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve el usuario o null si no se encuentra
-}
-
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve el usuario o null si no se encuentra
+    }
+    public function getAPIKey(int $id){
+        $query= 'SELECT token FROM usuario WHERE id = :id';
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $token= $stmt->fetch(PDO::FETCH_ASSOC);
+        return $token['token'];
+    }
 
 }

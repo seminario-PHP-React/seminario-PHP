@@ -7,12 +7,13 @@ namespace App\Controllers;
 use App\Model\UserModel;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Valitron\Validator;
+use Valitron\Validator ;
 use Firebase\JWT\JWT;
 
 class SignupController{
-    private const SECRET_KEY = 'mi_clave_re_secreta_y_segura_123';
+    
     public function __construct(private Validator $validator, private UserModel $model){
+        
         $this->validator->mapFieldsRules(
             ['name' => ['required'],
             'user_name' => ['required', 'alphaNum', ['lengthBetween', 6, 20]],
@@ -20,6 +21,7 @@ class SignupController{
             'password_confirmation' => ['required', ['equals', 'password']
             ]
         ]);
+        
         
     }
     public function create(Request $request, Response $response): Response
@@ -50,16 +52,20 @@ class SignupController{
             'iat' => time(),
             'exp' => time() + 3600
         ];
-        $jwt = JWT::encode($payload, self::SECRET_KEY, 'HS256');
+        $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
 
         // Guardar el JWT como api_key
         $this->model->updateApiKey($user_id, $jwt, date('Y-m-d H:i:s', strtotime('+1 hours')));
 
         // Responder
         $response->getBody()->write(json_encode([
-            'message' => 'User created successfully',
-            'api_key' => $jwt
+            'message' => 'Usuario creado con éxito',
+            'Token' => $jwt
         ]));
+       
+
+        
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+        
     }
 }

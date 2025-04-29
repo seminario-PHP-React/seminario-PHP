@@ -16,6 +16,13 @@ use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
 
 
+// En tu archivo principal (por ejemplo, index.php o bootstrap.php)
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');  // Cargar el archivo .env desde el directorio raíz
+$dotenv->load();
+
+
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', SignupController::class . ':create' );
     $group->post('/login', LoginController::class . ':create' );

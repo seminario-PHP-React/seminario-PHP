@@ -30,7 +30,7 @@ class RequireAPIKey
     
         try {
             // Decodificar el token JWT
-            $decoded = JWT::decode($token, new Key('mi_clave_re_secreta_y_segura_123', 'HS256'));
+            $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET_KEY'], 'HS256'));
             $userId = $decoded->sub; // El user_id (sub) del payload
     
             // Verificar si el user_id existe en la base de datos

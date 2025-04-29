@@ -13,6 +13,8 @@ use function DI\string;
 
 class CardsController{
     public function __construct(private CardModel $model, private Validator $validator) {
+        Validator::langDir(__DIR__.'/../../../vendor/vlucas/valitron/lang');
+        Validator::lang('es');
         $this->validator->mapFieldsRules
         ([
             'name' => ['required'],

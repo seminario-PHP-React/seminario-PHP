@@ -17,24 +17,18 @@ class LoginController{
         
     }
     public function create(Request $request, Response $response): Response
-{
+    {
     $data = $request->getParsedBody(); 
 
     if (!isset($data['user'], $data['name'], $data['password'])) {
-        $response->getBody()->write('Fields are missing');
-        return $response->withStatus(400);
+        $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campose en el cuerpo de la solicitud']));
+        return $response->withStatus(401);
     }    
 
     $user = $this->model->find('usuario', $data['user']);
     
-    if (! $user) {
-        $response->getBody()->write('User not found');
-        return $response->withStatus(404);
-    }
-
-    if (trim(strtolower($user['nombre'])) !== trim(strtolower($data['name'])) || 
-        !password_verify($data['password'], $user['password'])) {
-        $response->getBody()->write('Unauthorized');
+    if ( $user['usuario'] !== $data['user'] || $user['nombre'] !== $data['name'] || !password_verify($data['password'], $user['password'])) {
+        $response->getBody()->write(json_encode(['error' => 'El usuario, el nombre o la contraseña son erroneos']));
         return $response->withStatus(401);
     }
 
@@ -47,7 +41,7 @@ class LoginController{
         'iat' => time(),
         'exp' => time() + 3600
     ];
-    $jwt = JWT::encode($payload, 'mi_clave_re_secreta_y_segura_123', 'HS256');
+    $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
 
     if ($token_exp < time()) {
         $new_api_key = $jwt;
@@ -56,10 +50,10 @@ class LoginController{
         $this->model->update($user['id'], 'token', $new_api_key);
         $this->model->update($user['id'], 'vencimiento_token', $now);
     }
-
+    $token= $this->model->getAPIKey($user['id']);
     $response->getBody()->write(json_encode([
         'Bienvenido' => $user['nombre'],
-        'Tu token es' => $jwt
+        'Tu token es' =>$token
     ]));
     return $response->withStatus(200);
 }
@@ -67,7 +61,7 @@ class LoginController{
     
     public function destroy(Request $request, Response $response): Response{
         session_destroy();
-        $response->getBody()->write('Logged out');
+        $response->getBody()->write(json_encode(['Mensaje'=>'Sesión cerrada con éxito']));
         return $response->withStatus(302);
     }
 }
