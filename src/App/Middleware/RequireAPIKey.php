@@ -21,7 +21,7 @@ class RequireAPIKey
     {
         if (! $request->hasHeader('Authorization')) {
             $response = $this->factory->createResponse();
-            $response->getBody()->write(json_encode(['error' => 'Authorization header required']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'Se requiere el encabezado Authorization']));
             return $response->withStatus(400);
         }
     
@@ -38,7 +38,7 @@ class RequireAPIKey
             
             if (!$user) {
                 $response = $this->factory->createResponse();
-                $response->getBody()->write(json_encode(['error' => 'User not found']));
+                $response->getBody()->write(json_encode(['Mensaje' => 'Usuario no encontrado']));
                 return $response->withStatus(401); // Usuario no encontrado
             }
     
@@ -47,7 +47,7 @@ class RequireAPIKey
     
         } catch (\Exception $e) {
             $response = $this->factory->createResponse();
-            $response->getBody()->write(json_encode(['error' => 'Invalid or expired token']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'El token ingresado no es válido o se encuentra vencido']));
             return $response->withStatus(401);
         }
     

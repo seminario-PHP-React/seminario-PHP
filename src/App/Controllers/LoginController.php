@@ -21,14 +21,14 @@ class LoginController{
     $data = $request->getParsedBody(); 
 
     if (!isset($data['user'], $data['name'], $data['password'])) {
-        $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campose en el cuerpo de la solicitud']));
+        $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campos en el cuerpo de la solicitud']));
         return $response->withStatus(401);
     }    
 
     $user = $this->model->find('usuario', $data['user']);
     
     if ( $user['usuario'] !== $data['user'] || $user['nombre'] !== $data['name'] || !password_verify($data['password'], $user['password'])) {
-        $response->getBody()->write(json_encode(['error' => 'El usuario, el nombre o la contraseña son erroneos']));
+        $response->getBody()->write(json_encode(['error' => 'El usuario, el nombre o la contraseña son incorrectos']));
         return $response->withStatus(401);
     }
 
@@ -44,10 +44,10 @@ class LoginController{
     $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
 
     if ($token_exp < time()) {
-        $new_api_key = $jwt;
+        $new_token = $jwt;
         $now = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-        $this->model->update($user['id'], 'token', $new_api_key);
+        $this->model->update($user['id'], 'token', $new_token);
         $this->model->update($user['id'], 'vencimiento_token', $now);
     }
     $token= $this->model->getAPIKey($user['id']);

@@ -26,7 +26,7 @@ class GetCard
         $id = $route-> getArgument('id');
         $Card = $this->model->getById((int)$id);
         if($Card === false){
-           throw new HttpNotFoundException($request, message: 'Card not found' );
+           throw new HttpNotFoundException($request, message: 'Carta no encontrada' );
         }
         $request = $request-> withAttribute('Card', $Card);
         return $handler-> handle($request);

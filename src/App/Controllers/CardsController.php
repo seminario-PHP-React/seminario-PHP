@@ -10,11 +10,12 @@ use App\Model\CardModel;
 use Valitron\Validator;
 
 use function DI\string;
+Validator::langDir(__DIR__.'/../../../vendor/vlucas/valitron/lang');
+Validator::lang('es');
 
 class CardsController{
     public function __construct(private CardModel $model, private Validator $validator) {
-        Validator::langDir(__DIR__.'/../../../vendor/vlucas/valitron/lang');
-        Validator::lang('es');
+        
         $this->validator->mapFieldsRules
         ([
             'name' => ['required'],
@@ -27,7 +28,7 @@ class CardsController{
     public function show(Request $request, Response $response, string $id): Response
     {
         $Card = $request->getAttribute('Card');
-        $body = json_encode($Card);
+        $body = json_encode(['Carta' => $Card]);
         $response->getBody()->write($body);
         return $response;
     }
@@ -41,7 +42,7 @@ class CardsController{
         $rows = $this->model->getCardByData($atributo, $nombre);
         if (empty($rows)) {
             $response->getBody()->write(json_encode([
-                'error' => 'Carta no encontrada con ese atributo y nombre.'
+                'Mensaje' => 'Carta no encontrada con ese atributo y nombre.'
             ])); 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
@@ -67,8 +68,8 @@ class CardsController{
         }
         $id = $this->model->create($body);
         $body = json_encode([
-            'message' => 'Product created',
-            'id' => $id
+            'Mensaje' => 'Carta creada con éxito',
+            'ID' => $id
 
         ]);
         $response->getBody()->write($body);
@@ -87,8 +88,8 @@ class CardsController{
         }
         $rows = $this->model->update((int) $id, $body);
         $body = json_encode([
-            'message' => 'Product updated',
-            'rows' => $rows
+            'Mensaje' => 'Carta actualizada con éxito',
+            'Filas' => $rows
 
         ]);
         $response->getBody()->write($body);
@@ -97,8 +98,8 @@ class CardsController{
     public function delete(Request $request, Response $response, string $id): Response{
         $rows = $this->model->delete($id);
         $body = json_encode([
-            'message' => 'Product deleted',
-            'rows'=> $rows
+            'Mensaje' => 'Carta eliminada',
+            'Filas'=> $rows
         ]);
         $response->getBody()->write($body);
         return $response;

@@ -17,12 +17,12 @@ class PartidaController {
         $data = $request->getParsedBody(); 
     
         if (!$user) {
-            $response->getBody()->write(json_encode(['error' => 'No autorizado']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'No autorizado']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
         }
     
         if (!isset($data['mazo'])) {
-            $response->getBody()->write(json_encode(['error' => 'Ingrese el ID del mazo seleccionado']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'Ingrese el ID del mazo seleccionado']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
     
@@ -32,7 +32,7 @@ class PartidaController {
        
         if (!$mazo || !isset($mazo['usuario_id']) || $mazo['usuario_id'] != $user) {
             
-            $response->getBody()->write(json_encode(['error' => 'Mazo no válido o no pertenece al usuario']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'Mazo no válido o no pertenece al usuario']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
     
@@ -45,7 +45,7 @@ class PartidaController {
     
 
         if (!isset($partidaData['user_id'], $partidaData['date'], $partidaData['mazo_id'], $partidaData['state'])) {
-            $response->getBody()->write(json_encode('Falta contenido ')); 
+            $response->getBody()->write(json_encode(['Mensaje'=>'Falta contenido '])); 
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(400);  
@@ -72,7 +72,7 @@ class PartidaController {
         
        
         if ($usuario != $user) {
-            $response->getBody()->write(json_encode(['error' => 'Usuario no válido o no pertenece al usuario']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'Usuario no válido o no pertenece al usuario']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
     
@@ -81,13 +81,13 @@ class PartidaController {
     
         if (!$mazo) {
 
-            $response->getBody()->write(json_encode(['error' => 'Esta partida no existe o no pertenece a este usuario']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'Esta partida no existe o no pertenece a este usuario']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             
         }
     
         if ($mazo['estado'] !== 'en_curso') {
-            $response->getBody()->write(json_encode(['error' => 'La partida no se encuentra en curso']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'La partida no se encuentra en curso']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
     

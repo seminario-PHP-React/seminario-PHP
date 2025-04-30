@@ -18,7 +18,7 @@ class EstadisticasController{
     {
         $data = $this->model->getEstadistica();
         if(!isset($data)){
-            $response->getBody()->write(json_encode(['error' => 'No hay estadisticas disponibles'] ));
+            $response->getBody()->write(json_encode(['Mensaje' => 'No hay estadisticas disponibles'] ));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }
         $payload= [];
