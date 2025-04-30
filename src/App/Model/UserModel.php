@@ -12,11 +12,11 @@ class UserModel{
     }
     public function create(array $data): int
     {
-        $sql = "INSERT INTO usuario (nombre, usuario, password)
+        $query = "INSERT INTO usuario (nombre, usuario, password)
                 VALUES (:name, :user_name, :password_hash)";
         
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
         
         $stmt->bindValue(':name', $data['name']);
         $stmt->bindValue(':user_name', $data['user_name']);
@@ -30,9 +30,9 @@ class UserModel{
     
     public function userExists(string $userName): bool
     {
-        $sql = "SELECT COUNT(*) FROM usuario WHERE usuario = :user_name";
+        $query = "SELECT COUNT(*) FROM usuario WHERE usuario = :user_name";
         $pdo = $this->database ->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
         $stmt->bindParam(':user_name', $userName);
         $stmt->execute();
         $result = $stmt->fetchColumn();
@@ -41,18 +41,18 @@ class UserModel{
 
     public function find(string $column, $value):array|bool
     {
-        $sql = "SELECT * FROM usuario WHERE $column = :value";
+        $query = "SELECT * FROM usuario WHERE $column = :value";
         $pdo = $this->database ->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
         $stmt->bindValue(':value', $value);
         $stmt->execute();
         return $stmt->fetch();
     }
     public function update(int $id, string $column, $value): void{
-        $sql = "UPDATE usuario SET $column = :value WHERE id = :id";
+        $query = "UPDATE usuario SET $column = :value WHERE id = :id";
 
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
 
         $stmt->bindValue(':value', $value);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -61,12 +61,12 @@ class UserModel{
     }
     public function updateApiKey(int $userId, string $apiKey, string $expiration): void
     {
-        $sql = "UPDATE usuario 
+        $query = "UPDATE usuario 
                 SET token = :token, vencimiento_token = :token_expiration 
                 WHERE id = :id";
 
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
 
         $stmt->bindValue(':token', $apiKey);
         $stmt->bindValue(':token_expiration', $expiration);
@@ -76,9 +76,9 @@ class UserModel{
     }
     public function findById(int $userId): ?array
     {
-        $sql = "SELECT * FROM usuario WHERE id = :user_id";
+        $query = "SELECT * FROM usuario WHERE id = :user_id";
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
         $stmt->bindValue(':user_id', $userId);
         $stmt->execute();
 

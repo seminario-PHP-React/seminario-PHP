@@ -51,3 +51,6 @@ Una vez el servidor esté en ejecución, puedes acceder a la aplicación abriend
 http://localhost:8000
 ```
 composer require vlucas/phpdotenv
+
+
+API on https://www.postman.com/juanazabaleta/seminario-php-garro-dolores-zabaleta-juana/overview
