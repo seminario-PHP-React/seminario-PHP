@@ -12,20 +12,22 @@ class MazoController {
     public function __construct(private MazoModel $model) {
     }
 
-    // Obtener mazos del usuario
+    
     public function getUserMazos(Request $request, Response $response, string $usuario_id): Response {
-        $usuario = $request->getAttribute('user_id');
-
-        // Valida que el usuario consultado sea el mismo que esta logueado
-        if ((int)$usuario_id !== (int)$usuario) {
+        $usuario = $request->getAttribute('usuario');
+    
+        if ($usuario_id != $usuario['id']) {
             $response->getBody()->write(json_encode(["Mensaje" => "No autorizado"]));
-            return $response->withStatus(401);
+            return $response->withHeader("Content-Type", "application/json")
+                            ->withStatus(401);
         }
-
-        $mazos = $this->model->getUserMazos($usuario);
+    
+        $mazos = $this->model->getUserMazos((int) $usuario_id);
         $response->getBody()->write(json_encode($mazos));
-        return $response->withHeader("Content-Type", "application/json");
+        return $response->withHeader("Content-Type", "application/json")
+                        ->withStatus(200);
     }
+    
 
     // Eliminar mazo
     public function delete(Request $request, Response $response, string $id): Response {

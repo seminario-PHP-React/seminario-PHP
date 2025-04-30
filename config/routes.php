@@ -32,6 +32,7 @@ $app->group('', function (RouteCollectorProxy $group){
         $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData');//chequeado
         $group->get('/profile/token', ProfileController::class . ':showApiKey');//chequeado
         $group->delete('/mazos/{id:[0-9]+}', MazoController::class . ':delete'); // TODO  validar que id sean numeros
+        $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
     })->add(RequireLogin::class);
 
 })->add(ActivateSession::class);
@@ -41,7 +42,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->post('/partida', [PartidaController::class, 'start']);
     $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano']);
 
-    $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos'); // TODO  validar que usuario sean palabras
+   
    
     $group->post('/mazos', MazoController::class . ':create'); //--chequeando
     $group->put('/mazos/{id}', MazoController::class . ':update'); // TODO  validar que id sean numeros
