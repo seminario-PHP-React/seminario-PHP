@@ -12,8 +12,8 @@ class UserModel{
     }
     public function create(array $data): int
     {
-        $sql = "INSERT INTO usuario (nombre, usuario, password, token, vencimiento_token)
-                VALUES (:name, :user_name, :password_hash, :api_key, :api_key_expiration)";
+        $sql = "INSERT INTO usuario (nombre, usuario, password)
+                VALUES (:name, :user_name, :password_hash)";
         
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($sql);
@@ -21,8 +21,7 @@ class UserModel{
         $stmt->bindValue(':name', $data['name']);
         $stmt->bindValue(':user_name', $data['user_name']);
         $stmt->bindValue(':password_hash', $data['password_hash']);
-        $stmt->bindValue(':api_key', $data['api_key']);
-        $stmt->bindValue(':api_key_expiration', $data['api_key_expiration']);
+        
     
         $stmt->execute();
     
@@ -63,14 +62,14 @@ class UserModel{
     public function updateApiKey(int $userId, string $apiKey, string $expiration): void
     {
         $sql = "UPDATE usuario 
-                SET token = :api_key, vencimiento_token = :api_key_expiration 
+                SET token = :token, vencimiento_token = :token_expiration 
                 WHERE id = :id";
 
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($sql);
 
-        $stmt->bindValue(':api_key', $apiKey);
-        $stmt->bindValue(':api_key_expiration', $expiration);
+        $stmt->bindValue(':token', $apiKey);
+        $stmt->bindValue(':token_expiration', $expiration);
         $stmt->bindValue(':id', $userId, \PDO::PARAM_INT);
 
         $stmt->execute();

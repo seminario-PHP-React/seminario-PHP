@@ -9,7 +9,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Valitron\Validator ;
 use Firebase\JWT\JWT;
-
+Validator::langDir(__DIR__.'/../../../vendor/vlucas/valitron/lang');
+Validator::lang('es');
 class SignupController{
     
     public function __construct(private Validator $validator, private UserModel $model){
@@ -30,7 +31,7 @@ class SignupController{
         $this->validator = $this->validator->withData($data);
 
         if ($this->model->userExists($data['user_name'])){
-            $response->getBody()->write(json_encode(['error' => 'User already exists']));
+            $response->getBody()->write(json_encode(['Mensaje' => 'El nombre de usuario ya existe']));
             return $response->withStatus(400);
         } 
 
@@ -39,6 +40,7 @@ class SignupController{
             return $response->withStatus(400);
         }
         
+
         // Encriptar password
         $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         
@@ -54,12 +56,14 @@ class SignupController{
         ];
         $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
 
-        // Guardar el JWT como api_key
+        $data['token'] = $jwt;
+        $data['token_expiration'] = date('Y-m-d H:i:s', strtotime('+1 hours', time()));
+        // Guardar el JWT como token
         $this->model->updateApiKey($user_id, $jwt, date('Y-m-d H:i:s', strtotime('+1 hours')));
 
         // Responder
         $response->getBody()->write(json_encode([
-            'message' => 'Usuario creado con éxito',
+            'Mensaje' => 'Usuario creado con éxito',
             'Token' => $jwt
         ]));
        

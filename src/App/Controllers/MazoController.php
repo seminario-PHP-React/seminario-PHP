@@ -18,7 +18,7 @@ class MazoController {
 
         // Valida que el usuario consultado sea el mismo que esta logueado
         if ((int)$usuario_id !== (int)$usuario) {
-            $response->getBody()->write(json_encode(["error" => "No autorizado"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "No autorizado"]));
             return $response->withStatus(401);
         }
 
@@ -33,7 +33,7 @@ class MazoController {
     
         // validamos que el mazo sea del usuario 
         if (! $this->model->mazoPerteneceAUsuario((int) $id, (int) $usuario)) {
-            $response->getBody()->write(json_encode(["error" => "No autorizado para eliminar este mazo"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "No autorizado para eliminar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
     
@@ -42,23 +42,23 @@ class MazoController {
             $this->model->eliminarMazoConCartas((int)$id);
     
             // si se pudo eliminar
-            $response->getBody()->write(json_encode(["message" => "Mazo eliminado"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "Mazo eliminado"]));
             return $response->withStatus(200);
     
         } catch (\Exception $e) {
             // si el error fue porq participo en una partida
             if ($e->getMessage() === "El mazo ha participado de una partida y no puede ser eliminado") {
-                $response->getBody()->write(json_encode(["error" => $e->getMessage()]));
+                $response->getBody()->write(json_encode(["Mensaje" => $e->getMessage()]));
                 return $response->withStatus(409);
             }
     
             // otros errores
             //$response->getBody()->write(json_encode(["error" => "Error interno del servidor"]));
             $response->getBody()->write(json_encode([
-                "error" => "Error interno del servidor",
-                "mensaje" => $e->getMessage(),
-                "linea" => $e->getLine(),
-                "archivo" => $e->getFile()
+                "Error" => "Error interno del servidor",
+                "Mensaje" => $e->getMessage(),
+                "Linea" => $e->getLine(),
+                "Archivo" => $e->getFile()
             ]));
             
             return $response->withStatus(500);
@@ -99,7 +99,7 @@ class MazoController {
         }
         
         if (isset($mensaje)) {
-            $response->getBody()->write(json_encode(["error" => $mensaje]));
+            $response->getBody()->write(json_encode(["Mensaje" => $mensaje]));
             return $response->withStatus(400)->withHeader("Content-Type", "application/json");
         }
             
@@ -109,15 +109,15 @@ class MazoController {
             $mazoId = $this->model->crearMazo($usuario, $nombre, $cartas);
     
             $response->getBody()->write(json_encode([
-                "id" => $mazoId,
-                "nombre" => $nombre
+                "ID" => $mazoId,
+                "Nombre" => $nombre
             ]));
             return $response->withStatus(201)->withHeader("Content-Type", "application/json");
     
         } catch (\Exception $e) {
             $response->getBody()->write(json_encode([
-                "error" => "Error al crear el mazo",
-                "mensaje" => $e->getMessage()
+                "Error" => "Error al crear el mazo",
+                "Mensaje" => $e->getMessage()
             ]));
             return $response->withStatus(400)->withHeader("Content-Type", "application/json");
         }
@@ -130,7 +130,7 @@ class MazoController {
     
         // verifica recepcion de parametros
         if (!isset($data['nombre']) || trim($data['nombre']) === '') {
-            $response->getBody()->write(json_encode(["error" => "Nombre requerido"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "Nombre es un campo requerido"]));
             return $response->withStatus(400)->withHeader("Content-Type", "application/json");
         }
     
@@ -138,25 +138,25 @@ class MazoController {
         
         // verifica que no exista otro mazo con ese nombre
         if ($this->model->nombreMazoExiste($usuario, $nuevoNombre, (int)$id)) {
-        $response->getBody()->write(json_encode(["error" => "Ya existe un mazo con ese nombre"]));
+        $response->getBody()->write(json_encode(["Mensaje" => "Ya existe un mazo con ese nombre"]));
         return $response->withStatus(409)->withHeader("Content-Type", "application/json");
     }
 
 
         if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario)) {
-            $response->getBody()->write(json_encode(["error" => "No autorizado para editar este mazo"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "No autorizado para editar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
     
         try {
             $this->model->editarNombreMazo((int)$id, $nuevoNombre);
     
-            $response->getBody()->write(json_encode(["message" => "Nombre actualizado"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "Nombre actualizado"]));
             return $response->withStatus(200)->withHeader("Content-Type", "application/json");
         } catch (\Exception $e) {
             $response->getBody()->write(json_encode([
-                "error" => "Error al actualizar el nombre",
-                "mensaje" => $e->getMessage()
+                "Error" => "Error al actualizar el nombre",
+                "Mensaje" => $e->getMessage()
             ]));
             return $response->withStatus(500)->withHeader("Content-Type", "application/json");
         }

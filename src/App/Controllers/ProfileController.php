@@ -11,7 +11,8 @@ use App\Model\UserModel;
 use Valitron\Validator;
 use Valitron\Validator as V;
 
-
+Validator::langDir(__DIR__.'/../../../vendor/vlucas/valitron/lang');
+Validator::lang('es');
 
 
 class ProfileController{
@@ -22,10 +23,10 @@ class ProfileController{
     public function showApiKey(Request $request, Response $response): Response
     {
         $user = $request-> getAttribute('usuario');        
-        $api_key= $user['token'];
+        $token= $user['token'];
 
    
-        $response->getBody()->write(json_encode(['API KEY' => $api_key]));
+        $response->getBody()->write(json_encode(['Token' => $token]));
         return $response;
     }
 
@@ -34,10 +35,10 @@ class ProfileController{
         $user = $request->getAttribute('usuario');        
 
         $body = json_encode([
-            "name" => $user['nombre'],
-            "username" => $user['usuario'],
-            "api_key" => $user['token'],
-            "api_key_expiration" =>date('d-m-Y H:i:s', strtotime($user['vencimiento_token'])) 
+            "Nombre" => $user['nombre'],
+            "Usuario" => $user['usuario'],
+            "Token" => $user['token'],
+            "Fecha de vencimiento del token" =>date('d-m-Y H:i:s', strtotime($user['vencimiento_token'])) 
         ]);
 
         $response->getBody()->write($body);
