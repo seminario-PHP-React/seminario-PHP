@@ -76,6 +76,21 @@ class MazoModel {
         return (bool) $stmt->fetchColumn();
     }
 
+    public function nombreNuevoMazoExiste(int $usuarioId, string $nombre): bool {
+        $pdo = $this->database->getConnection();
+        $query= "
+            SELECT COUNT(*) FROM mazo 
+            WHERE usuario_id = :usuario_id AND nombre = :nombre;
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindValue(':nombre', $nombre, PDO::PARAM_STR);
+       
+        $stmt->execute();
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function mazoExiste(int $usuarioId, int $mazoIdActual): bool {
         $pdo = $this->database->getConnection();
         $query= "

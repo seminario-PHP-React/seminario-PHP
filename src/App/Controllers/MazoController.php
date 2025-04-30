@@ -72,7 +72,7 @@ class MazoController {
 
     // Crear nuevo mazo
     public function create(Request $request, Response $response): Response {
-        $usuario = $request->getAttribute('user_id');
+        $usuario = $request->getAttribute('usuario');
         $data = $request->getParsedBody();
     
        
@@ -82,7 +82,12 @@ class MazoController {
         }
     
         $nombre = trim($data['nombre']);    // elimina espacios en blanco
-        $cartas = $data['cartas'];          
+        $cartas = $data['cartas'];   
+
+        if ($this->model->nombreNuevoMazoExiste($usuario['id'], $nombre)) {
+            $response->getBody()->write(json_encode(["Mensaje" => "Ya existe un mazo con ese nombre"]));
+            return $response->withStatus(409)->withHeader("Content-Type", "application/json");
+        }       
     
         switch (true) {
             case count($cartas) > 5:
@@ -97,7 +102,7 @@ class MazoController {
                 $mensaje = "Una o más cartas no existen";
                 break;
         
-            case $this->model->cantidadMazosUsuario($usuario) == 3:
+            case $this->model->cantidadMazosUsuario($usuario['id']) == 3:
                 $mensaje = "Jugador con 3 mazos";
                 break;
         }
@@ -110,7 +115,7 @@ class MazoController {
     
         // Intentar crear el mazo
         try {
-            $mazoId = $this->model->crearMazo($usuario, $nombre, $cartas);
+            $mazoId = $this->model->crearMazo($usuario['id'], $nombre, $cartas);
     
             $response->getBody()->write(json_encode([
                 "ID" => $mazoId,
@@ -129,7 +134,7 @@ class MazoController {
     
     // Editar nombre del mazo
     public function update(Request $request, Response $response, string $id): Response {
-        $usuario = $request->getAttribute('user_id');
+        $usuario = $request->getAttribute('usuario');
         $data = $request->getParsedBody();
     
         // verifica recepcion de parametros
@@ -140,17 +145,18 @@ class MazoController {
     
         $nuevoNombre = trim($data['nombre']); // elimina espacios
         
-        // verifica que no exista otro mazo con ese nombre
-        if ($this->model->nombreMazoExiste($usuario, $nuevoNombre, (int)$id)) {
-        $response->getBody()->write(json_encode(["Mensaje" => "Ya existe un mazo con ese nombre"]));
-        return $response->withStatus(409)->withHeader("Content-Type", "application/json");
-    }
+      
 
-
-        if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario)) {
+        if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuario['id'])) {
             $response->getBody()->write(json_encode(["Mensaje" => "No autorizado para editar este mazo"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+          // verifica que no exista otro mazo con ese nombre
+          if ($this->model->nombreMazoExiste($usuario['id'], $nuevoNombre, (int)$id)) {
+            $response->getBody()->write(json_encode(["Mensaje" => "Ya existe un mazo con ese nombre"]));
+            return $response->withStatus(409)->withHeader("Content-Type", "application/json");
+        }
+    
     
         try {
             $this->model->editarNombreMazo((int)$id, $nuevoNombre);

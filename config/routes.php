@@ -28,11 +28,22 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/logout', LoginController::class . ':destroy');//chequeado
 
     $group->group('', function (RouteCollectorProxy $group){
-        $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update');//chequeado
-        $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData');//chequeado
+       
         $group->get('/profile/token', ProfileController::class . ':showApiKey');//chequeado
-        $group->delete('/mazos/{id:[0-9]+}', MazoController::class . ':delete'); // TODO  validar que id sean numeros
-        $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
+
+        $group->group('/mazos', function (RouteCollectorProxy $group){
+            $group->delete('/{id:[0-9]+}', MazoController::class . ':delete'); //chequeado
+            $group->put('/{id:[0-9]+}', MazoController::class . ':update');  //Chequeado
+            $group->post('', MazoController::class . ':create'); //chequeado
+        });
+
+        $group->group('/usuarios', function (RouteCollectorProxy $group){
+            $group->put('/{usuario:[0-9]+}', ProfileController::class . ':update');//chequeado
+            $group->get('/{usuario:[0-9]+}', ProfileController::class . ':showUserData');//chequeado
+            $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos'); //chequeado
+        });
+
+
     })->add(RequireLogin::class);
 
 })->add(ActivateSession::class);
@@ -41,11 +52,7 @@ $app->group('', function (RouteCollectorProxy $group){
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/partida', [PartidaController::class, 'start']);
     $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano']);
-
-   
-   
-    $group->post('/mazos', MazoController::class . ':create'); //--chequeando
-    $group->put('/mazos/{id}', MazoController::class . ':update'); // TODO  validar que id sean numeros
+    
  
 })->add(RequireAPIKey::class);
 
