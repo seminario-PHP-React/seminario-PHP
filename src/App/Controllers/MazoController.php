@@ -71,9 +71,9 @@ class MazoController {
         $usuario = $request->getAttribute('user_id');
         $data = $request->getParsedBody();
     
-        // Si no existe nombre o array de cartas --> faltan datos
+       
         if (!isset($data['nombre'], $data['cartas']) || !is_array($data['cartas'])) {
-            $response->getBody()->write(json_encode(["error" => "Faltan datos requeridos (nombre o cartas)"]));
+            $response->getBody()->write(json_encode(["Mensaje" => "Los campos nombre o cartas son obligatorios"]));
             return $response->withStatus(400)->withHeader("Content-Type", "application/json");
         }
     

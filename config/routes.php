@@ -16,22 +16,21 @@ use App\Middleware\ActivateSession;
 use App\Middleware\RequireLogin;
 
 
-// En tu archivo principal (por ejemplo, index.php o bootstrap.php)
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');  // Cargar el archivo .env desde el directorio raíz
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');  // cargar el archivo .env 
 $dotenv->load();
 
 
 $app->group('', function (RouteCollectorProxy $group){
-    $group->post('/registro', SignupController::class . ':create' );
-    $group->post('/login', LoginController::class . ':create' );
-    $group->get('/logout', LoginController::class . ':destroy');
+    $group->post('/registro', SignupController::class . ':create' ); //chequeado
+    $group->post('/login', LoginController::class . ':create' );//chequeado
+    $group->get('/logout', LoginController::class . ':destroy');//chequeado
 
     $group->group('', function (RouteCollectorProxy $group){
-        $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update');
-        $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData');
-        $group->get('/profile/token', ProfileController::class . ':showApiKey');
+        $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update');//chequeado
+        $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData');//chequeado
+        $group->get('/profile/token', ProfileController::class . ':showApiKey');//chequeado
     })->add(RequireLogin::class);
 
 })->add(ActivateSession::class);
@@ -40,9 +39,10 @@ $app->group('', function (RouteCollectorProxy $group){
 $app->group('', function (RouteCollectorProxy $group){
     $group->post('/partida', [PartidaController::class, 'start']);
     $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano']);
+    
     $group->get('/usuarios/{usuario}/mazos', MazoController::class . ':getUserMazos'); // TODO  validar que usuario sean palabras
     $group->delete('/mazos/{id}', MazoController::class . ':delete'); // TODO  validar que id sean numeros
-    $group->post('/mazos', MazoController::class . ':create');
+    $group->post('/mazos', MazoController::class . ':create'); //--chequeando
     $group->put('/mazos/{id}', MazoController::class . ':update'); // TODO  validar que id sean numeros
  
 })->add(RequireAPIKey::class);
@@ -51,7 +51,7 @@ $app->group('', function (RouteCollectorProxy $group){
 
 $app->group('/api', function (RouteCollectorProxy $group){
     $group->post('/card', [CardsController::class, 'create']);
-    $group->get('/cartas', CardsController::class . ':showByData');
+    $group->get('/cartas', CardsController::class . ':showByData');//chequeado
 
 
     $group->group('', function (RouteCollectorProxy $group){
