@@ -52,16 +52,23 @@ class ProfileController{
         return $response;
     }
 
-    public function update(Request $request, Response $response): Response
+    public function update(Request $request, Response $response, string $usuario): Response
     {
     $user = $request->getAttribute('usuario');
     $data = $request->getParsedBody() ?? []; // Evita errores si el body es null
 
+    if ($usuario != $user['id']){
+        $body= json_encode(['Mensaje' => 'Acceso denegado']);
+        $response->getBody()->write($body);
+        return $response->withStatus(401);
+    }
+    
     if (empty($data)) {
         $body= json_encode(['Mensaje' => 'Debe enviar un campo válido (nombre o contraseña).']);
         $response->getBody()->write($body);
         return $response->withStatus(400);
     }
+
 
     // Configurar reglas dinámicamente según los campos recibidos
     $rules = [];

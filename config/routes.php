@@ -27,7 +27,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->post('/signup', SignupController::class . ':create' );
     $group->post('/login', LoginController::class . ':create' );
     $group->get('/logout', LoginController::class . ':destroy');
-    $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
+    $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/token', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
     $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 
