@@ -29,7 +29,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/logout', LoginController::class . ':destroy');
     $group->patch('/profile', ProfileController::class . ':update')->add(RequireLogin::class);
     $group->get('/profile/token', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
-    $group->get('/profile', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+    $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData')->add(RequireLogin::class);
 
 })->add(ActivateSession::class);
 

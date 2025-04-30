@@ -30,9 +30,15 @@ class ProfileController{
         return $response;
     }
 
-    public function showUserData(Request $request, Response $response): Response
+    public function showUserData(Request $request, Response $response,  string $usuario): Response
     {
         $user = $request->getAttribute('usuario');        
+        
+        if ($usuario != $user['id']){
+            $body= json_encode(['Mensaje' => 'Acceso denegado']);
+            $response->getBody()->write($body);
+            return $response->withStatus(401);
+        }
 
         $body = json_encode([
             "Nombre" => $user['nombre'],
@@ -52,7 +58,7 @@ class ProfileController{
     $data = $request->getParsedBody() ?? []; // Evita errores si el body es null
 
     if (empty($data)) {
-        $body= json_encode(['error' => 'Debe enviar un campo válido (usuario o contraseña).']);
+        $body= json_encode(['Mensaje' => 'Debe enviar un campo válido (nombre o contraseña).']);
         $response->getBody()->write($body);
         return $response->withStatus(400);
     }
@@ -94,13 +100,8 @@ class ProfileController{
         return $response->withStatus(200);
     }
 
-    // Si es actualización de usuario
+    
     if (isset($data['name'])) {
-        if ($this->model->userExists($data['name'])){
-            $response->getBody()->write(json_encode(['Mensaje' => 'El usuario que quiere crear ya existe']));
-            return $response->withStatus(400);
-        } 
-
         $this->model->update($user['id'], 'nombre', $data['name']);
         $body= json_encode(['Mensaje' =>'Nombre actualizado exitosamente.']);
         $response->getBody()->write($body);
