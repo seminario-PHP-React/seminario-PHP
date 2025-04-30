@@ -33,25 +33,28 @@ class CardsController{
         return $response;
     }
 
-    public function showByData(Request $request, Response $response, string $atributo, string $nombre): Response 
+    public function showByData(Request $request, Response $response): Response
     {
-        // Normalización
-        $atributo = ucfirst(strtolower($atributo));
-        $nombre = ucfirst(strtolower($nombre));
+        $params = $request->getQueryParams();
+        $atributo = strtolower($params['atributo'] ?? '');
+        $nombre = strtolower($params['nombre'] ?? '');
+        $atributo = isset($params['atributo']) && $params['atributo'] !== '' ? strtolower($params['atributo']) . '%' : null;
+        $nombre = isset($params['nombre']) && $params['nombre'] !== '' ? strtolower($params['nombre']) . '%' : null;
 
+        
         $rows = $this->model->getCardByData($atributo, $nombre);
+
         if (empty($rows)) {
             $response->getBody()->write(json_encode([
-                'Mensaje' => 'Carta no encontrada con ese atributo y nombre.'
-            ])); 
+                'Mensaje' => 'Carta no encontrada con esos parámetros.'
+            ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
-    
+
         $response->getBody()->write(json_encode($rows));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 
-    
 
 
 

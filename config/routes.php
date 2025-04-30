@@ -24,12 +24,15 @@ $dotenv->load();
 
 
 $app->group('', function (RouteCollectorProxy $group){
-    $group->post('/signup', SignupController::class . ':create' );
+    $group->post('/registro', SignupController::class . ':create' );
     $group->post('/login', LoginController::class . ':create' );
     $group->get('/logout', LoginController::class . ':destroy');
-    $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update')->add(RequireLogin::class);
-    $group->get('/profile/token', ProfileController::class . ':showApiKey')->add(RequireLogin::class);
-    $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData')->add(RequireLogin::class);
+
+    $group->group('', function (RouteCollectorProxy $group){
+        $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update');
+        $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData');
+        $group->get('/profile/token', ProfileController::class . ':showApiKey');
+    })->add(RequireLogin::class);
 
 })->add(ActivateSession::class);
 
@@ -48,7 +51,7 @@ $app->group('', function (RouteCollectorProxy $group){
 
 $app->group('/api', function (RouteCollectorProxy $group){
     $group->post('/card', [CardsController::class, 'create']);
-    $group->get('/card/{atributo:[A-Za-z]+}/{nombre:[A-Za-z]+}', CardsController::class . ':showByData');
+    $group->get('/cartas', CardsController::class . ':showByData');
 
 
     $group->group('', function (RouteCollectorProxy $group){

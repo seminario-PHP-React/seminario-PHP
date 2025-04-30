@@ -28,7 +28,16 @@ class UserModel{
         return (int) $pdo->lastInsertId(); 
     }
     
-    
+    public function userExists(string $userName): bool
+    {
+        $sql = "SELECT COUNT(*) FROM usuario WHERE usuario = :user_name";
+        $pdo = $this->database ->getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_name', $userName);
+        $stmt->execute();
+        $result = $stmt->fetchColumn();
+        return $result > 0;  
+    }
 
     public function find(string $column, $value):array|bool
     {
