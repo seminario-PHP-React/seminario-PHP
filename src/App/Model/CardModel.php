@@ -16,7 +16,7 @@ class CardModel
     public function getCardByData(?string $atributo, ?string $nombre): array {
         $pdo = $this->database->getConnection();
         
-        $sql = "
+        $query = "
             SELECT C.id, C.nombre, C.ataque, C.ataque_nombre, C.imagen, A.nombre AS atributo
             FROM carta AS C
             LEFT JOIN atributo AS A ON C.atributo_id = A.id
@@ -24,15 +24,15 @@ class CardModel
         ";
         
         if ($atributo !== null) {
-            $sql .= " AND LOWER(A.nombre) LIKE :atributo";
+            $query .= " AND LOWER(A.nombre) LIKE :atributo";
         }
         
         if ($nombre !== null) {
-            $sql .= " AND LOWER(C.nombre) LIKE :nombre";
+            $query .= " AND LOWER(C.nombre) LIKE :nombre";
         }
         
     
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
     
         if ($atributo) {
             $stmt->bindValue(':atributo', strtolower($atributo), PDO::PARAM_STR); 

@@ -27,9 +27,6 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/logout', LoginController::class . ':destroy');
 
     $group->group('', function (RouteCollectorProxy $group){
-       
-        $group->get('/profile/token', ProfileController::class . ':showApiKey');
-
         $group->group('/mazos', function (RouteCollectorProxy $group){
             $group->delete('/{id:[0-9]+}', MazoController::class . ':delete'); 
             $group->put('/{id:[0-9]+}', MazoController::class . ':update');  
@@ -46,8 +43,8 @@ $app->group('', function (RouteCollectorProxy $group){
 
 
 $app->group('', function (RouteCollectorProxy $group){
-    $group->post('/partida', [PartidaController::class, 'start']);
-    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', [PartidaController::class, 'cartasEnMano']);
+    $group->post('/partida', PartidaController::class . ':start');
+    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', PartidaController::class . ':cartasEnMano');
     $group->get('/cartas', CardsController::class . ':showByData');
  
 })->add(RequireAPIKey::class);
