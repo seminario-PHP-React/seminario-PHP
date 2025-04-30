@@ -29,13 +29,15 @@ class MazoController {
 
     // Eliminar mazo
     public function delete(Request $request, Response $response, string $id): Response {
-        $usuario = $request->getAttribute('user_id'); // usuario logueado
-    
-        // validamos que el mazo sea del usuario 
-        if (! $this->model->mazoPerteneceAUsuario((int) $id, (int) $usuario)) {
-            $response->getBody()->write(json_encode(["Mensaje" => "No autorizado para eliminar este mazo"]));
+        $usuario = $request->getAttribute('usuario'); // usuario logueado
+        
+        if (! $this->model->mazoExiste((int) $usuario['id'], (int) $id )) {
+            $response->getBody()->write(json_encode(["Mensaje" => "Este mazo no existe o no pertenece al usuario"]));
             return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
         }
+
+        // validamos que el mazo sea del usuario 
+        
     
         try {
             // intenta eliminar mazo --> si falla continua con el catch

@@ -60,6 +60,7 @@ class MazoModel {
         return (int) $mazoId;
     }
     
+    
     public function nombreMazoExiste(int $usuarioId, string $nombre, int $mazoIdActual): bool {
         $pdo = $this->database->getConnection();
         $query= "
@@ -74,6 +75,21 @@ class MazoModel {
         $stmt->execute();
         return (bool) $stmt->fetchColumn();
     }
+
+    public function mazoExiste(int $usuarioId, int $mazoIdActual): bool {
+        $pdo = $this->database->getConnection();
+        $query= "
+            SELECT COUNT(*) FROM mazo 
+            WHERE usuario_id = :usuario_id AND id = :mazo_id
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindValue(':mazo_id', $mazoIdActual, PDO::PARAM_INT);
+        $stmt->execute();
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function editarNombreMazo(int $mazoId, string $nuevoNombre): void {
         $pdo = $this->database->getConnection();
         $query= "UPDATE mazo SET nombre = :nombre WHERE id = :id";
