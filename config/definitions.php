@@ -14,17 +14,5 @@ return [
             user: 'root',
             password: ''
         );          
-    },
-
-    UserModel::class => function ($container) {
-        return new UserModel($container->get(Database::class));
-    },
-
-    MazoModel::class => function ($container) {
-        return new MazoModel($container->get(Database::class));
-    },
-
-    MazoController::class => function ($container) {
-        return new MazoController($container->get(MazoModel::class));
     }
 ];

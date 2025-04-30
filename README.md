@@ -50,34 +50,7 @@ Una vez el servidor esté en ejecución, puedes acceder a la aplicación abriend
 ```
 http://localhost:8000
 ```
-QUERY PARA COMPARAR RESULTADOS
-```
-SELECT 
-    c1.id AS carta_1,
-    c2.id AS carta_2,
-    CASE
-        -- Si gana el atributo de carta 1 sobre carta 2
-        WHEN ga.total > 0 THEN 'gano'
-        
-        -- Si gana el atributo de carta 2 sobre carta 1
-        WHEN ga2.total > 0 THEN 'perdio'
-        
-        -- Si no hay ventaja definida, es empate
-        ELSE 'empate'
-    END AS resultado
-FROM 
-    carta c1
-JOIN 
-    carta c2 ON c1.id != c2.id
-LEFT JOIN 
-    (SELECT COUNT(*) AS total, atributo_id, atributo_id2
-     FROM gana_a
-     GROUP BY atributo_id, atributo_id2) ga 
-    ON c1.atributo_id = ga.atributo_id AND c2.atributo_id = ga.atributo_id2
-LEFT JOIN 
-    (SELECT COUNT(*) AS total, atributo_id, atributo_id2
-     FROM gana_a
-     GROUP BY atributo_id, atributo_id2) ga2 
-    ON c2.atributo_id = ga2.atributo_id AND c1.atributo_id = ga2.atributo_id2
-ORDER BY c1.id, c2.id;
-```
+composer require vlucas/phpdotenv
+
+
+API on https://www.postman.com/juanazabaleta/seminario-php-garro-dolores-zabaleta-juana/overview

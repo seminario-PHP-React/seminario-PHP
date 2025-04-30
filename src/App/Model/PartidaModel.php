@@ -12,11 +12,11 @@ class PartidaModel{
     
     }
     public function create(array $data): string {
-        $sql = 'INSERT INTO partida (usuario_id, fecha, mazo_id, estado) 
+        $query = 'INSERT INTO partida (usuario_id, fecha, mazo_id, estado) 
                 VALUES (:user_id, :date, :mazo_id, :state)';
         
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($query);
     
         $stmt->bindValue(':user_id', $data['user_id'], PDO::PARAM_INT);
         $stmt->bindValue(':date', $data['date']);
@@ -35,16 +35,15 @@ class PartidaModel{
         return $lastInsertId;
     }
     
-    public function find($idMazo, $idUser) {
-        $query = "SELECT * FROM mazo WHERE id = :idMazo AND usuario_id = :idUser";
-        $pdo= $this->database->getConnection();
+    public function findMazoByIdAndUser(int $mazoId, int $userId): array|false {
+        $query = "SELECT * FROM mazo WHERE id = :mazoId AND usuario_id = :userId";
+        $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
-
-        $stmt->bindParam(':idMazo', $idMazo, PDO::PARAM_INT);
-        $stmt->bindParam(':idUser', $idUser, PDO::PARAM_INT);
+        $stmt->bindParam(':mazoId', $mazoId, PDO::PARAM_INT);
+        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->execute();
-
-        return $stmt->fetch(PDO::FETCH_ASSOC); 
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     
     public function getCartas($mazoId) {
