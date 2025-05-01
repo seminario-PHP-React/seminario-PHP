@@ -39,6 +39,7 @@ $app->group('', function (RouteCollectorProxy $group){
             $group->get('/{usuario:[0-9]+}', ProfileController::class . ':showUserData');
             $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
         });
+        $group->post('/jugadas',JugadaController::class . ':registrarJugada');
     })->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
@@ -47,7 +48,6 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->post('/partida', PartidaController::class . ':start');
     $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', PartidaController::class . ':cartasEnMano');
     $group->get('/cartas', CardsController::class . ':showByData');
- 
 })->add(RequireAPIKey::class);
 
 

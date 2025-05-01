@@ -26,11 +26,18 @@ class PartidaModel{
     
         $lastInsertId = $pdo->lastInsertId();
     
-        $updateSql = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
-        $updateStmt = $pdo->prepare($updateSql);
-        $updateStmt->bindValue(':estado', 'en_mano');
-        $updateStmt->bindValue(':mazo_id', (int)$data['mazo_id'], PDO::PARAM_INT);
-        $updateStmt->execute();
+        $updateServerCards= 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
+        $updateStmtS = $pdo->prepare($updateServerCards);
+        $updateStmtS->bindValue(':estado', 'en_mano');
+        $updateStmtS->bindValue(':mazo_id', '1');
+        $updateStmtS->execute();
+
+        $updateUserCards = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
+        $updateStmtU = $pdo->prepare($updateUserCards);
+        $updateStmtU->bindValue(':estado', 'en_mano');
+        $updateStmtU->bindValue(':mazo_id', (int)$data['mazo_id'], PDO::PARAM_INT);
+        $updateStmtU->execute();
+
     
         return $lastInsertId;
     }
@@ -122,6 +129,32 @@ class PartidaModel{
 
     }
   
+    public function mazoEnUso($mazoId): bool
+    {
+        $query = "SELECT COUNT(*) FROM partida WHERE mazo_id = :mazo_id AND estado = 'en_curso' ";
+        $pdo= $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+    public function mazoServidorEnUso($mazoId): bool
+    {
+        $query = "SELECT COUNT(*) FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = 'en_mano' ";
+        $pdo= $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
     
-    
+    public function resultadoUsuario($rto, $partidaId):void{
+        $query= "UPDATE partida SET el_usuario = :rto
+                WHERE id = :partidaId";
+        $pdo= $this->database->getConnection();
+        $stmt= $pdo->prepare($query);
+        $stmt->bindValue(':rto', $rto, PDO::PARAM_STR); 
+        $stmt->bindValue(':partidaId', $partidaId, PDO::PARAM_INT);
+        $stmt->execute(); 
+    }
 }

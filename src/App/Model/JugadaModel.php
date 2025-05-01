@@ -1,61 +1,71 @@
 <?php
-
-
 declare(strict_types=1);
+
 namespace App\Model;
 
 use App\Database;
 use PDO;
+use Exception;
 
 class JugadaModel
 {
     public function __construct(private Database $database) {}
 
-   
-    public function insertarJugada(int $partidaId, int $cartaIdUsuario, int $cartaIdServidor): array
+    public function insertarJugada(int $partidaId, int $cartaIdUsuario, int $cartaIdServidor, int $mazoServidor): array
     {
-        $conexion = $this->database->getConnection();
+        $pdo = $this->database->getConnection();
         $sql = 'INSERT INTO jugada (partida_id, carta_id_a, carta_id_b)
                 VALUES (:partidaId, :cartaUsuario, :cartaServidor)';
-        $stmt = $conexion->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':partidaId'     => $partidaId,
             ':cartaUsuario'  => $cartaIdUsuario,
             ':cartaServidor' => $cartaIdServidor,
         ]);
 
-        $nuevoId = (int) $conexion->lastInsertId();
-        $this->marcarCartaJugada($cartaIdUsuario, $partidaId);
+        $nuevoId = (int)$pdo->lastInsertId();
+        $this->marcarCartaJugadaUsuario($cartaIdUsuario, $partidaId);
+        $this->marcarCartaJugadaServidor($cartaIdServidor, $mazoServidor);
+
         return $this->obtenerJugadaPorId($nuevoId);
     }
 
-    public function marcarCartaJugada($carta_id, $partida_id){
-        $query='UPDATE mazo_carta MC
-        LEFT JOIN mazo M ON MC.mazo_id = M.id
-        LEFT JOIN partida P ON M.id = P.mazo_id
-        SET MC.estado = \'descartado\'
-        WHERE MC.carta_id = :carta_id AND P.id = :partida_id';
-
-        $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':carta_id', $carta_id, PDO::PARAM_INT);
-        $stmt->bindParam(':partida_id', $partida_id, PDO::PARAM_INT);
-        $stmt->execute();
+    public function marcarCartaJugadaUsuario(int $carta_id, int $partida_id): void
+    {
+        $sql = 'UPDATE mazo_carta MC
+                JOIN mazo M ON MC.mazo_id = M.id
+                JOIN partida P ON M.id = P.mazo_id
+                SET MC.estado = "descartado"
+                WHERE MC.carta_id = :carta_id AND P.id = :partida_id';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([
+            ':carta_id'    => $carta_id,
+            ':partida_id'  => $partida_id
+        ]);
     }
 
-    public function marcarResultado($rto, $jugada){
-        
-        $query='UPDATE jugada J
-            SET J.el_usuario = :rto
-            WHERE J.id = :jugada';
-
-         $pdo = $this->database->getConnection();
-         $stmt = $pdo->prepare($query);
-         $stmt->bindParam(':rto', $rto, PDO::PARAM_STR);
-         $stmt->bindParam(':jugada', $jugada, PDO::PARAM_INT);
-         $stmt->execute();
+    public function marcarCartaJugadaServidor(int $carta_id, int $mazo_id): void
+    {
+        $sql = 'UPDATE mazo_carta
+                SET estado = "descartado"
+                WHERE carta_id = :carta_id AND mazo_id = :mazo_id';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([
+            ':carta_id' => $carta_id,
+            ':mazo_id'  => $mazo_id
+        ]);
     }
-   
+
+    public function marcarResultado(string $rto, int $jugadaId): void
+    {
+        $sql = 'UPDATE jugada SET el_usuario = :rto WHERE id = :jugada';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([
+            ':rto'    => $rto,
+            ':jugada' => $jugadaId
+        ]);
+    }
+
     public function obtenerJugadaPorId(int $idJugada): array
     {
         $sql = 'SELECT * FROM jugada WHERE id = :idJugada';
@@ -64,101 +74,95 @@ class JugadaModel
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
-    
-    public function determinarGanadorRonda(array $registroJugada): string
+    public function determinarGanadorRonda(array $registroJugada): array
     {
-        $conexion = $this->database->getConnection();
-
-        // 1) Traer datos de ambas cartas
-        $sqlCartas = 'SELECT id, ataque, atributo_id
-                      FROM carta
-                      WHERE id IN (:idUsuario, :idServidor)';
-        $stmtCartas = $conexion->prepare($sqlCartas);
-        $stmtCartas->execute([
-            ':idUsuario'  => $registroJugada['carta_id_a'],
-            ':idServidor' => $registroJugada['carta_id_b'],
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare('SELECT id, ataque, atributo_id FROM carta WHERE id IN (:a, :b)');
+        $stmt->execute([
+            ':a' => $registroJugada['carta_id_a'],
+            ':b' => $registroJugada['carta_id_b']
         ]);
-        $cartas = $stmtCartas->fetchAll(PDO::FETCH_ASSOC);
-    
-        // Asignar variables descriptivas
+        $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $usuario = null;
+        $servidor = null;
+
         foreach ($cartas as $carta) {
             if ($carta['id'] === (int)$registroJugada['carta_id_a']) {
-                $cartaUsuario = $carta;
-            } else {
-                $cartaServidor = $carta;
+                $usuario = $carta;
+            }
+            if ($carta['id'] === (int)$registroJugada['carta_id_b']) {
+                $servidor = $carta;
             }
         }
-    
-        $ataqueUsuario  = (float) $cartaUsuario['ataque'];
-        $ataqueServidor = (float) $cartaServidor['ataque'];
-    
-        // 2) Verificar ventaja de atributos
-        $sqlVentajaUsuario = 'SELECT COUNT(*) AS total
-                              FROM gana_a
-                              WHERE atributo_id = :atributoA AND atributo_id2 = :atributoB';
-        $sqlVentajaServidor = 'SELECT COUNT(*) AS total
-                               FROM gana_a
-                               WHERE atributo_id = :atributoA AND atributo_id2 = :atributoB';
-        $stmtVentajaUsuario = $conexion->prepare($sqlVentajaUsuario);
-        $stmtVentajaServidor = $conexion->prepare($sqlVentajaServidor);
-    
-        // Ventaja usuario sobre servidor
-        $stmtVentajaUsuario->execute([
-            ':atributoA' => $cartaUsuario['atributo_id'],
-            ':atributoB' => $cartaServidor['atributo_id'],
+
+        if ($registroJugada['carta_id_a'] === $registroJugada['carta_id_b']) {
+            if ($usuario !== null) {
+                $servidor = $usuario;
+            }
+        }
+
+        if ($usuario === null || $servidor === null) {
+            throw new Exception('Faltan datos de carta para determinar el ganador.');
+        }
+
+        $ataqueUsuario  = (float)$usuario['ataque'];
+        $ataqueServidor = (float)$servidor['ataque'];
+
+        $stmtVentaja = $pdo->prepare('SELECT COUNT(*) FROM gana_a WHERE atributo_id = :a AND atributo_id2 = :b');
+
+        $stmtVentaja->execute([
+            ':a' => $usuario['atributo_id'],
+            ':b' => $servidor['atributo_id']
         ]);
-        $ventajaUsuario = (int)$stmtVentajaUsuario->fetch(PDO::FETCH_ASSOC)['total'];
-    
-        // Ventaja servidor sobre usuario
-        $stmtVentajaServidor->execute([
-            ':atributoA' => $cartaServidor['atributo_id'],
-            ':atributoB' => $cartaUsuario['atributo_id'],
+        $ventajaUsuario = (int)$stmtVentaja->fetchColumn();
+
+        $stmtVentaja->execute([
+            ':a' => $servidor['atributo_id'],
+            ':b' => $usuario['atributo_id']
         ]);
-        $ventajaServidor = (int)$stmtVentajaServidor->fetch(PDO::FETCH_ASSOC)['total'];
-    
-        // Si hay ventaja para el usuario, se aumenta el ataque
-        if ($ventajaUsuario > 0) {
-            $ataqueUsuario *= 1.3;
-        }
-    
-        // Si hay ventaja para el servidor, se aumenta el ataque
-        if ($ventajaServidor > 0) {
-            $ataqueServidor *= 1.3;
-        }
-        
-        if ($ventajaUsuario === 0 && $ventajaServidor === 0){
-        $rto= 'empato';
-        }
-        elseif ($ataqueUsuario > $ataqueServidor) {
-            $rto= 'gano';
-        }
-        elseif ($ataqueServidor > $ataqueUsuario) {
-            $rto= 'perdio';
-        }
-        
-       
+        $ventajaServidor = (int)$stmtVentaja->fetchColumn();
 
-        return $rto;
+        if ($ventajaUsuario > 0)  $ataqueUsuario  *= 1.3;
+        if ($ventajaServidor > 0) $ataqueServidor *= 1.3;
+
+        $resultado = 'empato';
+        if ($ataqueUsuario > $ataqueServidor) {
+            $resultado = 'gano';
+        } elseif ($ataqueServidor > $ataqueUsuario) {
+            $resultado = 'perdio';
+        }
+
+        return [
+            'resultado' => $resultado,
+            'fuerza_usuario' => $ataqueUsuario,
+            'fuerza_servidor' => $ataqueServidor
+        ];
     }
-    public function cantidadDeRondas(int $partidaId): int {
-        $query = 'SELECT COUNT(p.id) AS total
-                FROM partida p
-                LEFT JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
-                WHERE mc.estado = \'descartado\' AND p.id = :partidaId';
-        
-        $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':partidaId', $partidaId, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        
-        $totalJugadas = $stmt->fetchColumn();
-        
-        return (int) $totalJugadas;  // Retornar el total de jugadas como entero
+
+
+    public function cantidadDeRondas(int $partidaId): int
+    {
+        $sql = 'SELECT COUNT(*) FROM jugada WHERE partida_id = :id';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([':id' => $partidaId]);
+        return (int)$stmt->fetchColumn();
     }
-    
 
+    public function obtenerCartasDisponibles(int $mazoId): array
+    {
+        $sql = 'SELECT carta_id FROM mazo_carta WHERE mazo_id = :mazoId AND estado = "en_mano"';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([':mazoId' => $mazoId]);
+        $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_column($filas, 'carta_id');
+    }
 
+    public function obtenerJugadasDePartida(int $partidaId): array
+    {
+        $sql = 'SELECT * FROM jugada WHERE partida_id = :partidaId';
+        $stmt = $this->database->getConnection()->prepare($sql);
+        $stmt->execute([':partidaId' => $partidaId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
-
-
