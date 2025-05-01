@@ -12,7 +12,6 @@ use App\Controllers\EstadisticasController;
 use App\Controllers\JugadaController;
 use App\Middleware\RequireAPIKey;
 use App\Middleware\ActivateSession;
-use App\Middleware\AddJsonResponseHeader;
 use App\Middleware\RequireLogin;
 
 
