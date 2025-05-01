@@ -31,10 +31,9 @@ class JugadaController
 
             // se han jugado 5 rondas?
             if ($numJugada >= 5) {
-                return $this->responderJSON($response,
-                    ['Mensaje' => 'Esta partida ya se encuentra finalizada'],
-                    404
-                );
+                $payload = ['Mensaje' => 'Esta partida ya se encuentra finalizada'];
+                $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
+                return $response->withStatus(404);
             }
 
             // está en la mano del usuario?
@@ -43,10 +42,9 @@ class JugadaController
             $tieneCarta = array_filter($cartasEnMano, fn($c) => $c['carta_id'] === $cartaIdUsuario);
 
             if (empty($tieneCarta)) {
-                return $this->responderJSON($response,
-                    ['Mensaje' => 'Carta no válida o ya utilizada'],
-                    403
-                );
+                $payload = ['Mensaje' => 'Carta no válida o ya utilizada'];
+                $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
+                return $response->withStatus(403);
             }
             $mazoServidor = 1;
 
@@ -90,18 +88,13 @@ class JugadaController
                 $payload['El usuario'] = $rto;
             }
 
-            return $this->responderJSON(
-                $response,
-                $payload,
-                200
-            );
+            $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(200);
         } catch (Exception $e) {
             // Manejo de error general
-            return $this->responderJSON(
-                $response,
-                ['Mensaje' => 'Error en el proceso de jugada: ' . $e->getMessage()],
-                500
-            );
+            $payload = ['Mensaje' => 'Error en el proceso de jugada: ' . $e->getMessage()];
+            $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
+            return $response->withStatus(500);
         }
     }
 
@@ -162,13 +155,5 @@ class JugadaController
             error_log('Error: ' . $e->getMessage()); // Loguea el error para desarrollo
             return null; // ⚠️ Devuelve null, no un 0 inventado
         }
-    }
-
-    private function responderJSON(Response $response, array $payload, int $status): Response
-    {
-        $response->getBody()->write(json_encode($payload, JSON_UNESCAPED_UNICODE));
-        return $response
-            ->withHeader('Content-Type', 'application/json; charset=utf-8')
-            ->withStatus($status);
     }
 }
