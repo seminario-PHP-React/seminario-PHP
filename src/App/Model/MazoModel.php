@@ -125,13 +125,14 @@ class MazoModel {
 
     public function mazoPerteneceAUsuario(int $mazoId, int $usuarioId): bool {
         $pdo = $this->database->getConnection();
-        $query="SELECT COUNT(*) FROM mazo WHERE id = :mazoId AND usuario_id = :usuarioId";
+        $query = "SELECT COUNT(*) FROM mazo WHERE id = :mazoId AND usuario_id = :usuarioId";
         $stmt = $pdo->prepare($query);
         $stmt->bindValue(':mazoId', $mazoId, PDO::PARAM_INT);
         $stmt->bindValue(':usuarioId', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
         return (bool) $stmt->fetchColumn();
     }
+    
 
     public function eliminarMazoConCartas(int $mazoId): int {
         $pdo = $this->database->getConnection();
@@ -164,7 +165,33 @@ class MazoModel {
         return $stmtMazo->rowCount();
     }   
     
+    public function cartasEnMano(int $mazoId): array {
+        $query = 'SELECT MC.carta_id FROM mazo M
+        LEFT JOIN mazo_carta MC ON MC.mazo_id = :mazoId
+        WHERE MC.estado = \'en_mano\' AND m.usuario_id = 1';
+
+        $pdo= $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+
+        $stmt->execute(['mazoId' => $mazoId]);
+       
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function actualizarEstadoMazo(string $estado, int $mazoId){
+        $query = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazoId';
+        $pdo= $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
+        $stmt->execute(['mazoId' => $mazoId,
+        'estado'=> $estado
+        ]);
+       
+        $stmt->execute();
 
 
+    }
+    
     
 }

@@ -1,56 +1,44 @@
-## Documentación de Instalación del Proyecto
+# API RESTful con Slim Framework en PHP
+## Descripción del Proyecto
+### Este proyecto consiste en el desarrollo de una API RESTful utilizando Slim Framework en PHP. El objetivo principal es permitir la gestión y autenticación de usuarios de manera segura utilizando JSON Web Tokens (JWT). La aplicación proporciona funcionalidades como la obtención y actualización de los datos de los usuarios, validación de entradas y manejo de errores.
 
-### Requisitos Previos
+## **Rutas de la API**
 
-Antes de comenzar, asegúrate de tener instalados los siguientes programas en tu máquina:
+Podes encontrar y probar todas las rutas de la API utilizando la colección de Postman en el siguiente enlace:
 
-1. **PHP** (versión 8.0 o superior)
-2. **Composer** (gestor de dependencias de PHP)
+[Ver Rutas](https://www.postman.com/juanazabaleta/seminario-php-garro-dolores-zabaleta-juana/overview)
 
-Puedes verificar si los tienes instalados con los siguientes comandos:
+## Objetivos
+- Crear una API que gestione usuarios de manera segura.
+- Implementar autenticación basada en JWT para proteger las rutas.
+- Usar Slim Framework para manejar las rutas y las solicitudes HTTP de manera eficiente.
+- Utilizar herramientas como Valitron para la validación de datos de entrada.
+- Asegurar el proyecto mediante buenas prácticas de desarrollo y el manejo adecuado de dependencias.
 
+## Tecnologías Utilizadas
+- <b>Slim Framework:</b>  Un framework minimalista de PHP que permite crear aplicaciones web y APIs de manera rápida.
+
+- <b>PHP:</b> Lenguaje de programación utilizado para desarrollar el backend de la aplicación.
+
+- <b>Firebase PHP-JWT:</b> Librería para la creación y validación de tokens JWT que proporcionan una capa de seguridad en la autenticación de usuarios.
+
+- <b>Valitron:</b> Librería para la validación de datos de entrada, asegurando que los datos enviados por los usuarios sean correctos antes de ser procesados.
+
+- <b>PHP-DI:</b> Implementación de inyección de dependencias que ayuda a gestionar la creación y la resolución de las clases de manera eficiente.
+
+- <b>PHPDotenv:</b> Maneja las variables de entorno en el proyecto, proporcionando una forma segura de gestionar credenciales y configuraciones.
+
+## Estructura del Proyecto
+El proyecto está estructurado de la siguiente manera:
 ```
-php -v
-composer -v
-```
+src/                    # Contiene todo el código fuente de la aplicación
+  └── App/
+      ├── Controllers/  # Controladores para manejar las rutas y la lógica de negocio
+      ├── Model/        # Modelos para interactuar con la base de datos
+      └── Middleware/   # Middleware para validación y autenticación
 
-### Pasos para la Instalación
+config/                 # Archivos de configuración
+    ├── Controllers/    # Configuración relacionada a los controladores
+    └── routes.php      # Definición de las rutas de la API
 
-### 1. Instalar las Dependencias ###
-Una vez clonado el repositorio, navega hasta la carpeta del proyecto:
-```
-cd <nombre-del-repositorio>
-```
-Como la carpeta vendor no está incluida en el repositorio (se encuentra en .gitignore), deberás instalar las dependencias de Composer. Ejecuta el siguiente comando:
-
-```
-composer install
-```
-Este comando descargará e instalará todas las dependencias necesarias que están definidas en el archivo composer.json.
-
-### 2. Configuración del Entorno ###
-Asegúrate de tener un entorno de servidor local que pueda ejecutar el proyecto, como el servidor web incorporado de PHP. Si no tienes configurado un servidor específico, puedes usar el servidor local de PHP:
-
-Navega hasta el directorio public (en donde se encuentra el archivo index.php):
-
-```
-cd public
-```
-
-Luego, ejecuta el servidor local con el siguiente comando:
-
-```
-php -S localhost:8000
-```
-Esto iniciará el servidor web en ***http://localhost:8000.*** Si todo está correctamente configurado, deberías ver el mensaje de "Hello world!" en el navegador.
-
-### 3. Acceso al Proyecto ###
-Una vez el servidor esté en ejecución, puedes acceder a la aplicación abriendo tu navegador y dirigiéndote a la siguiente URL:
-
-```
-http://localhost:8000
-```
-composer require vlucas/phpdotenv
-
-
-API on https://www.postman.com/juanazabaleta/seminario-php-garro-dolores-zabaleta-juana/overview
+.env                    # Archivo de configuración del entorno (variables sensibles)

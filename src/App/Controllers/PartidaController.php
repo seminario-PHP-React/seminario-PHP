@@ -37,8 +37,19 @@ class PartidaController {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Mazo no válido o no pertenece al usuario']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
-           
-        
+            
+            if ($this->model->mazoServidorEnUso(1)) {
+                $response->getBody()->write(json_encode(['Mensaje' => 'El servidor ya se encuentra jugando otra partida']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
+            }
+
+            if ($this->model->mazoEnUso($mazoId)) {
+                $response->getBody()->write(json_encode(['Mensaje' => 'Este mazo ya está siendo utilizado en otra partida en curso, por favor seleccione otro']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
+            }
+
+            
+            
             $partidaData = [
                 'user_id' => $user,
                 'date' => date('Y-m-d H:i:s'),
