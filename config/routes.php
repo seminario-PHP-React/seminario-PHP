@@ -28,6 +28,7 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->put('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':update')->add(RequireAPIKey::class);
     $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData')->add(RequireAPIKey::class);
     $group->post('/partidas', PartidaController::class . ':start')->add(RequireAPIKey::class);
+    $group->post('/jugadas', JugadaController::class . ':registrarJugada')->add(RequireAPIKey::class);
 
     $group->get('/usuarios/{usuario:[0-9]+}/mazos', MazoController::class . ':getUserMazos')->add(RequireAPIKey::class); 
 
@@ -43,7 +44,7 @@ $app->group('', function (RouteCollectorProxy $group){
             
             $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
         });
-        $group->post('/jugadas',JugadaController::class . ':registrarJugada');
+       
     })->add(RequireLogin::class);
 })->add(ActivateSession::class);
 
