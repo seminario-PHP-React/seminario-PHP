@@ -29,8 +29,9 @@ $app->group('', function (RouteCollectorProxy $group){
     $group->get('/usuarios/{usuario:[0-9]+}', ProfileController::class . ':showUserData')->add(RequireAPIKey::class);
     $group->post('/partidas', PartidaController::class . ':start')->add(RequireAPIKey::class);
     $group->post('/jugadas', JugadaController::class . ':registrarJugada')->add(RequireAPIKey::class);
-
+    $group->get('/cartas', CardsController::class . ':showByData');
     $group->get('/usuarios/{usuario:[0-9]+}/mazos', MazoController::class . ':getUserMazos')->add(RequireAPIKey::class); 
+    $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos')->add(RequireAPIKey::class); 
 
     $group->group('', function (RouteCollectorProxy $group){
         $group->group('/mazos', function (RouteCollectorProxy $group){
@@ -42,17 +43,17 @@ $app->group('', function (RouteCollectorProxy $group){
         $group->group('/usuarios', function (RouteCollectorProxy $group){
 
             
-            $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
+            
         });
        
     })->add(RequireLogin::class);
-})->add(ActivateSession::class);
+});
 
 
 $app->group('', function (RouteCollectorProxy $group){
    
     $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', PartidaController::class . ':cartasEnMano');
-    $group->get('/cartas', CardsController::class . ':showByData');
+   
 })->add(RequireAPIKey::class);
 
 
