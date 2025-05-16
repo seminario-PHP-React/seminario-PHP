@@ -17,26 +17,48 @@ class CardsController {
     {
         try {
             $params = $request->getQueryParams();
-            $atributo = strtolower($params['atributo'] ?? '');
-            $nombre = strtolower($params['nombre'] ?? '');
-
             $atributo = isset($params['atributo']) && $params['atributo'] !== '' ? strtolower($params['atributo']) . '%' : null;
             $nombre = isset($params['nombre']) && $params['nombre'] !== '' ? strtolower($params['nombre']) . '%' : null;
 
             $rows = $this->model->getCardByData($atributo, $nombre);
 
             if (empty($rows)) {
+                $mensaje = 'No se encontraron cartas';
+                if ($atributo) {
+                    $mensaje .= " con el atributo '" . trim($atributo, '%') . "'";
+                }
+                if ($nombre) {
+                    $mensaje .= " y nombre '" . trim($nombre, '%') . "'";
+                }
+                $mensaje .= '. Por favor, intente con otros criterios de búsqueda.';
+
                 $response->getBody()->write(json_encode([
-                    'Mensaje' => 'Carta no encontrada con esos parámetros.'
+                    'Mensaje' => $mensaje,
+                    'Sugerencia' => 'Puede intentar con otros atributos o nombres de cartas.'
                 ]));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
 
-            $response->getBody()->write(json_encode($rows));
+            $cartas = array_map(function($row) {
+                return [
+                    'ID' => $row['id'],
+                    'Nombre' => $row['nombre'],
+                    'Atributo' => $row['atributo'],
+                    'Ataque' => $row['ataque'],
+                    'Nombre del Ataque' => $row['ataque_nombre'],
+                    'Imagen' => $row['imagen']
+                ];
+            }, $rows);
+
+            $response->getBody()->write(json_encode([
+                'Mensaje' => 'Cartas encontradas exitosamente',
+                'Cantidad' => count($cartas),
+                'Cartas' => $cartas
+            ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         } catch (Exception $e) {
             $response->getBody()->write(json_encode([
-                'Error' => 'Ocurrió un error inesperado.',
+                'Mensaje' => 'Ocurrió un error al buscar las cartas',
                 'Detalle' => $e->getMessage()
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
