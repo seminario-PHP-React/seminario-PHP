@@ -39,24 +39,23 @@ class UserModel{
         return $result > 0;  
     }
 
-    public function find(string $column, $value):array|bool
+    public function find(string $column, $value): array|bool
     {
         $query = "SELECT * FROM usuario WHERE $column = :value";
-        $pdo = $this->database ->getConnection();
+        $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
         $stmt->bindValue(':value', $value);
         $stmt->execute();
-        return $stmt->fetch();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: false;
     }
-    public function update(int $id, string $column, $value): void{
+    public function update(int $id, string $column, $value): void
+    {
         $query = "UPDATE usuario SET $column = :value WHERE id = :id";
-
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
-
         $stmt->bindValue(':value', $value);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
         $stmt->execute();
     }
     public function updateApiKey(int $userId, string $apiKey, string $expiration): void

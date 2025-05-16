@@ -19,46 +19,37 @@ class LoginController {
         try {
             $data = $request->getParsedBody(); 
 
-            if (!isset($data['user'], $data['name'], $data['password'])) {
+            if (!isset($data['usuario'], $data['nombre'], $data['contraseña'])) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campos en el cuerpo de la solicitud']));
                 return $response->withStatus(401);
             }    
 
-            $user = $this->model->find('usuario', $data['user']);
+            $user = $this->model->find('usuario', $data['usuario']);
 
-            if (!$user || $user['usuario'] !== $data['user'] || $user['nombre'] !== $data['name'] || !password_verify($data['password'], $user['password'])) {
-                $response->getBody()->write(json_encode(['error' => 'El usuario, el nombre o la contraseña son incorrectos']));
+            if (!$user || $user['usuario'] !== $data['usuario'] || $user['nombre'] !== $data['nombre'] || !password_verify($data['contraseña'], $user['password'])) {
+                $response->getBody()->write(json_encode(['Mensaje' => 'El usuario, el nombre o la contraseña son incorrectos']));
                 return $response->withStatus(401);
             }
-
-            $_SESSION['user_id'] = $user['id']; 
-
-            $token_exp = strtotime($user['vencimiento_token']);
+            
             $payload = [
-                'sub' => $user['id'],
+                'sub' => (int)$user['id'],
                 'name' => $user['nombre'],
                 'iat' => time(),
                 'exp' => time() + 3600
             ];
 
             $jwt = JWT::encode($payload, $_ENV['JWT_SECRET_KEY'], 'HS256');
+            $now = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
-            if ($token_exp < time()) {
-                $new_token = $jwt;
-                $now = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
-                $this->model->update($user['id'], 'token', $new_token);
-                $this->model->update($user['id'], 'vencimiento_token', $now);
-            }
-
-            $token = $this->model->getAPIKey($user['id']);
+            $this->model->update((int)$user['id'], 'token', $jwt);
+            $this->model->update((int)$user['id'], 'vencimiento_token', $now);
 
             $response->getBody()->write(json_encode([
-                'Bienvenido' => $user['nombre'],
-                'Tu token es' => $token
+                'Mensaje' => 'Bienvenido ' . $user['nombre'],
+                'Token' => $jwt
             ]));
 
-            return $response->withStatus(200);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         } catch (Exception $e) {
             $response->getBody()->write(json_encode([
                 'error' => 'Ocurrió un error al iniciar sesión',
