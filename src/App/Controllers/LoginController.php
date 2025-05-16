@@ -31,6 +31,7 @@ class LoginController {
                 return $response->withStatus(401);
             }
             
+
             $payload = [
                 'sub' => (int)$user['id'],
                 'name' => $user['nombre'],

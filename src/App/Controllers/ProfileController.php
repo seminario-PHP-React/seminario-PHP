@@ -20,14 +20,26 @@ class ProfileController
     public function showUserData(Request $request, Response $response, string $usuario): Response
     {
         try {
-            $usuarioIdToken = $request->getAttribute('usuario_id');
-            if ($usuario !== (string)$usuarioIdToken) {
-                $body = json_encode(['Mensaje' => 'Acceso denegado']);
+            $usuarioIdToken = $request->getAttribute('user_id');
+            if (!$usuarioIdToken) {
+                $body = json_encode(['Mensaje' => 'Token inválido o expirado']);
                 $response->getBody()->write($body);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
             }
 
-            $user = $this->model->findById((int)$usuarioIdToken);
+            if (!is_numeric($usuario)) {
+                $body = json_encode(['Mensaje' => 'El ID de usuario debe ser un número']);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+
+            if ((int)$usuario !== (int)$usuarioIdToken) {
+                $body = json_encode(['Mensaje' => 'Solo puede ver su propio perfil']);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
+
+            $user = $this->model->findById((int)$usuario);
             if (!$user) {
                 $body = json_encode(['Mensaje' => 'Usuario no encontrado']);
                 $response->getBody()->write($body);
@@ -37,7 +49,9 @@ class ProfileController
             $body = json_encode([
                 "Nombre" => $user['nombre'],
                 "Usuario" => $user['usuario'],
-                // No conviene devolver token ni fecha en perfil
+                "ID" => $user['id'],
+                "Token" => $user['token'],
+                "Vencimiento del token" => $user['vencimiento_token']
             ]);
 
             $response->getBody()->write($body);
@@ -50,10 +64,9 @@ class ProfileController
     public function update(Request $request, Response $response, string $usuario): Response
     {
         try {
-            $usuarioIdToken = $request->getAttribute('usuario');
-            var_dump($usuarioIdToken['id']);
-            var_dump($usuario);
-            if ((int) $usuario !== $usuarioIdToken['id']) {
+            $usuarioIdToken = $request->getAttribute('user_id');
+
+            if ((int) $usuario !== $usuarioIdToken) {
                 $body = json_encode(['Mensaje' => 'Acceso denegado']);
                 $response->getBody()->write($body);
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
