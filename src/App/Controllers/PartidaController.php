@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -81,7 +83,7 @@ class PartidaController {
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
         
-            $mazo = $this->model->getMazoPorPartida($partida, $usuario); 
+            $mazo = $this->model->getMazoPorPartida((int)$partida, (int)$usuario); 
         
             if (!$mazo) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Esta partida no existe o no pertenece a este usuario']));
@@ -93,7 +95,7 @@ class PartidaController {
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
     
-            $cartasRestantes = $this->model->getCartasMano($usuario, $partida);
+            $cartasRestantes = $this->model->getCartasMano((int)$usuario, (int)$partida);
         
             $payload = [];
         

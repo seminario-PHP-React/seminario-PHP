@@ -3,19 +3,24 @@ declare(strict_types=1);
 namespace App\Model;
 use App\Database;
 use PDO;
+use Exception;
 
+class PartidaModel {
+    public function __construct(private Database $database) {}
 
-class PartidaModel{
-
-    public function __construct(private Database $database)
-    {
-    
-    }
     public function create(array $data): string {
         $pdo = $this->database->getConnection();
         $pdo->beginTransaction();
 
         try {
+            if (!$this->mazoExiste((int)$data['mazo_id'])) {
+                throw new Exception('El mazo no existe');
+            }
+
+            if (!$this->usuarioExiste((int)$data['user_id'])) {
+                throw new Exception('El usuario no existe');
+            }
+
             $query = 'INSERT INTO partida (usuario_id, fecha, mazo_id, estado) 
                     VALUES (:user_id, :date, :mazo_id, :state)';
             
@@ -31,7 +36,7 @@ class PartidaModel{
             $updateServerCards = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
             $updateStmtS = $pdo->prepare($updateServerCards);
             $updateStmtS->bindValue(':estado', 'en_mano');
-            $updateStmtS->bindValue(':mazo_id', '1');
+            $updateStmtS->bindValue(':mazo_id', 1, PDO::PARAM_INT);
             $updateStmtS->execute();
 
             $updateUserCards = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazo_id';
@@ -48,6 +53,28 @@ class PartidaModel{
             $this->database->closeConnection();
             throw $e;
         }
+    }
+
+    private function mazoExiste(int $mazoId): bool {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT COUNT(*) FROM mazo WHERE id = :mazo_id";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchColumn() > 0;
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    private function usuarioExiste(int $userId): bool {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT COUNT(*) FROM usuario WHERE id = :user_id";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchColumn() > 0;
+        $this->database->closeConnection();
+        return $result;
     }
     
     public function findMazoByIdAndUser(int $mazoId, int $userId): array|false {
@@ -83,14 +110,18 @@ class PartidaModel{
     }
     
     public function getCartasMano(int $usuario, int $partida): array {
+        if (!$this->partidaPerteneceAUsuario($partida, $usuario)) {
+            throw new Exception('La partida no pertenece al usuario');
+        }
+
         $pdo = $this->database->getConnection();
         $query = "
             SELECT mc.carta_id, c.nombre, c.ataque_nombre, a.nombre AS atributo_nombre 
             FROM partida p 
-            LEFT JOIN mazo m ON m.id = p.mazo_id
-            LEFT JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
-            LEFT JOIN carta c ON mc.carta_id = c.id
-            LEFT JOIN atributo a ON c.atributo_id = a.id
+            INNER JOIN mazo m ON m.id = p.mazo_id
+            INNER JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
+            INNER JOIN carta c ON mc.carta_id = c.id
+            INNER JOIN atributo a ON c.atributo_id = a.id
             WHERE p.id = :partida AND p.usuario_id = :usuario AND mc.estado = 'en_mano';
         ";
         $stmt = $pdo->prepare($query);
@@ -103,12 +134,24 @@ class PartidaModel{
         return $result;
     }
 
+    private function partidaPerteneceAUsuario(int $partidaId, int $usuarioId): bool {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT COUNT(*) FROM partida WHERE id = :partida_id AND usuario_id = :usuario_id";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchColumn() > 0;
+        $this->database->closeConnection();
+        return $result;
+    }
+
     public function getMazoPorPartida(int $partida, int $usuario): array|bool {
         $pdo = $this->database->getConnection();
         $query = "
             SELECT p.id, p.usuario_id, p.estado
             FROM partida p
-            LEFT JOIN mazo m ON p.mazo_id = m.id
+            INNER JOIN mazo m ON p.mazo_id = m.id
             WHERE p.id = :partida AND p.usuario_id = :usuario;
         ";
     
@@ -140,6 +183,11 @@ class PartidaModel{
         $stmt->execute();
         $mazo = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->database->closeConnection();
+
+        if (!$mazo) {
+            throw new Exception('La partida no existe');
+        }
+
         return (int)$mazo['mazo_id'];
     }
   
