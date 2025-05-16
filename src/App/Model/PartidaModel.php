@@ -129,15 +129,23 @@ class PartidaModel{
 
     }
   
-    public function mazoEnUso($mazoId): bool
-    {
-        $query = "SELECT COUNT(*) FROM partida WHERE mazo_id = :mazo_id AND estado = 'en_curso' ";
-        $pdo= $this->database->getConnection();
-        $stmt = $pdo->prepare($query);
-        $stmt->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchColumn() > 0;
-    }
+    public function mazoEnUso(int $mazoId, int $usuarioId): bool
+{
+    $query = "SELECT COUNT(*) 
+              FROM partida 
+              WHERE mazo_id = :mazo_id 
+                AND usuario_id = :usuario_id 
+                AND estado = 'en_curso'";
+
+    $pdo = $this->database->getConnection();
+    $stmt = $pdo->prepare($query);
+    $stmt->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
+    $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchColumn() > 0;
+}
+
     public function mazoServidorEnUso($mazoId): bool
     {
         $query = "SELECT COUNT(*) FROM mazo_carta WHERE mazo_id = :mazo_id AND estado = 'en_mano' ";
