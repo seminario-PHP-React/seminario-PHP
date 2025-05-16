@@ -63,7 +63,7 @@ class MazoController {
 
     public function create(Request $request, Response $response): Response {
         try {
-            $usuarioIdToken = $request->getAttribute('usuario_id');
+            $usuarioIdToken = (int)$request->getAttribute('user_id');
             $data = $request->getParsedBody();
 
             if (!isset($data['nombre'], $data['cartas']) || !is_array($data['cartas'])) {
@@ -102,6 +102,7 @@ class MazoController {
             $mazoId = $this->model->crearMazo($usuarioIdToken, $nombre, $cartas);
 
             $response->getBody()->write(json_encode([
+                "Mensaje" => "Mazo creado exitosamente",
                 "ID" => $mazoId,
                 "Nombre" => $nombre
             ]));
@@ -117,7 +118,7 @@ class MazoController {
 
     public function update(Request $request, Response $response, string $id): Response {
         try {
-            $usuarioIdToken = $request->getAttribute('usuario_id');
+            $usuarioIdToken = (int)$request->getAttribute('user_id');
             $data = $request->getParsedBody();
 
             if (!isset($data['nombre']) || trim($data['nombre']) === '') {
@@ -127,7 +128,7 @@ class MazoController {
 
             $nuevoNombre = trim($data['nombre']);
 
-            if (! $this->model->mazoPerteneceAUsuario((int)$id, (int)$usuarioIdToken)) {
+            if (! $this->model->mazoPerteneceAUsuario((int)$id, $usuarioIdToken)) {
                 $response->getBody()->write(json_encode(["Mensaje" => "No autorizado para editar este mazo"]));
                 return $response->withStatus(401)->withHeader('Content-Type', 'application/json');
             }

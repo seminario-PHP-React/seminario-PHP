@@ -165,4 +165,163 @@ class JugadaModel
         $stmt->execute([':partidaId' => $partidaId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function create(int $partidaId, int $cartaId, string $estado): int {
+        $pdo = $this->database->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $query = "INSERT INTO jugada (partida_id, carta_id, estado) VALUES (:partida_id, :carta_id, :estado)";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+            $stmt->bindValue(':carta_id', $cartaId, PDO::PARAM_INT);
+            $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $jugadaId = (int)$pdo->lastInsertId();
+            $pdo->commit();
+            $this->database->closeConnection();
+            return $jugadaId;
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            $this->database->closeConnection();
+            throw $e;
+        }
+    }
+
+    public function getJugadasPartida(int $partidaId): array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT j.*, c.nombre as carta_nombre, c.poder as carta_poder 
+            FROM jugada j 
+            JOIN carta c ON j.carta_id = c.id 
+            WHERE j.partida_id = :partida_id 
+            ORDER BY j.fecha_creacion ASC
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function getUltimaJugada(int $partidaId): ?array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT j.*, c.nombre as carta_nombre, c.poder as carta_poder 
+            FROM jugada j 
+            JOIN carta c ON j.carta_id = c.id 
+            WHERE j.partida_id = :partida_id 
+            ORDER BY j.fecha_creacion DESC 
+            LIMIT 1
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result ?: null;
+    }
+
+    public function getCartasJugadas(int $partidaId): array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT c.id, c.nombre, c.poder 
+            FROM jugada j 
+            JOIN carta c ON j.carta_id = c.id 
+            WHERE j.partida_id = :partida_id 
+            ORDER BY j.fecha_creacion ASC
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function getCartasEnMano(int $partidaId): array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT c.id, c.nombre, c.poder 
+            FROM mazo_carta mc 
+            JOIN carta c ON mc.carta_id = c.id 
+            WHERE mc.mazo_id = (
+                SELECT mazo_id FROM partida WHERE id = :partida_id
+            ) 
+            AND mc.estado = 'en_mano'
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function actualizarEstadoCarta(int $partidaId, int $cartaId, string $estado): void {
+        $pdo = $this->database->getConnection();
+        $query = "
+            UPDATE mazo_carta 
+            SET estado = :estado 
+            WHERE mazo_id = (
+                SELECT mazo_id FROM partida WHERE id = :partida_id
+            ) 
+            AND carta_id = :carta_id
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->bindValue(':carta_id', $cartaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $this->database->closeConnection();
+    }
+
+    public function cartaEnMano(int $partidaId, int $cartaId): bool {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT COUNT(*) 
+            FROM mazo_carta 
+            WHERE mazo_id = (
+                SELECT mazo_id FROM partida WHERE id = :partida_id
+            ) 
+            AND carta_id = :carta_id 
+            AND estado = 'en_mano'
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->bindValue(':carta_id', $cartaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = (bool)$stmt->fetchColumn();
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function getPoderCarta(int $cartaId): int {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT poder FROM carta WHERE id = :id";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':id', $cartaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = (int)$stmt->fetchColumn();
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function getPoderTotalJugadas(int $partidaId): int {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT SUM(c.poder) 
+            FROM jugada j 
+            JOIN carta c ON j.carta_id = c.id 
+            WHERE j.partida_id = :partida_id
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':partida_id', $partidaId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = (int)$stmt->fetchColumn();
+        $this->database->closeConnection();
+        return $result;
+    }
 }

@@ -24,7 +24,9 @@ class UserModel{
         
         $stmt->execute();
     
-        return (int) $pdo->lastInsertId(); 
+        $result = (int) $pdo->lastInsertId();
+        $this->database->closeConnection();
+        return $result; 
     }
     
     public function userExists(string $usuario): bool
@@ -35,6 +37,7 @@ class UserModel{
         $stmt->bindParam(':usuario', $usuario);
         $stmt->execute();
         $result = $stmt->fetchColumn();
+        $this->database->closeConnection();
         return $result > 0;  
     }
 
@@ -46,6 +49,7 @@ class UserModel{
         $stmt->bindValue(':value', $value);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
         return $result ?: false;
     }
     public function update(int $id, string $column, $value): void
@@ -56,6 +60,7 @@ class UserModel{
         $stmt->bindValue(':value', $value);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
+        $this->database->closeConnection();
     }
     public function updateApiKey(int $userId, string $apiKey, string $expiration): void
     {
@@ -71,6 +76,7 @@ class UserModel{
         $stmt->bindValue(':id', $userId, \PDO::PARAM_INT);
 
         $stmt->execute();
+        $this->database->closeConnection();
     }
     public function findById(int $userId): ?array
     {
@@ -80,7 +86,9 @@ class UserModel{
         $stmt->bindValue(':user_id', $userId);
         $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve el usuario o null si no se encuentra
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result ?: null; // Devuelve el usuario o null si no se encuentra
     }
     public function getAPIKey(int $id): ?string
     {
@@ -91,6 +99,7 @@ class UserModel{
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $token = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
         return $token ? $token['token'] : null;
     }
 
