@@ -9,7 +9,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\CardModel;
 use Exception;
 
-
 class CardsController {
     public function __construct(private CardModel $model) {}
 
@@ -17,11 +16,13 @@ class CardsController {
     {
         try {
             $params = $request->getQueryParams();
-            $atributo = strtolower($params['atributo'] ?? '');
-            $nombre = strtolower($params['nombre'] ?? '');
 
-            $atributo = isset($params['atributo']) && $params['atributo'] !== '' ? strtolower($params['atributo']) . '%' : null;
-            $nombre = isset($params['nombre']) && $params['nombre'] !== '' ? strtolower($params['nombre']) . '%' : null;
+            $atributo = isset($params['atributo']) && $params['atributo'] !== '' 
+                ? strtolower($params['atributo']) . '%' 
+                : null;
+            $nombre = isset($params['nombre']) && $params['nombre'] !== '' 
+                ? strtolower($params['nombre']) . '%' 
+                : null;
 
             $rows = $this->model->getCardByData($atributo, $nombre);
 

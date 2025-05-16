@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 namespace App\Model;
+
 use App\Database;
 use PDO;
 
@@ -9,10 +10,9 @@ class EstadisticaModel
 {
     public function __construct(private Database $database)
     {
-        
     }
 
-    public function getEstadistica()
+    public function getEstadistica(): array
     {
         $query = 'SELECT 
                     u.nombre, 
@@ -24,15 +24,11 @@ class EstadisticaModel
                   FROM partida p
                   JOIN usuario u ON p.usuario_id = u.id
                   GROUP BY p.usuario_id, u.nombre';
-        
+
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    
-
-
 }

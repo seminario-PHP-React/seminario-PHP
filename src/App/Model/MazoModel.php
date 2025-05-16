@@ -3,13 +3,11 @@ namespace App\Model;
 
 use App\Database;
 use PDO;
+use PDOException;
 
 class MazoModel {
-   
 
-    public function __construct(private Database $database) {
-      
-    }
+    public function __construct(private Database $database) {}
 
     public function existenCartas(array $cartas): bool {
         if (empty($cartas)) {
@@ -37,29 +35,26 @@ class MazoModel {
         $pdo = $this->database->getConnection();
         $pdo->beginTransaction();
     
-        // Inserta el mazo
         $query = "INSERT INTO mazo (usuario_id, nombre) VALUES (:usuario_id, :nombre)";
         $stmt = $pdo->prepare($query);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
         $stmt->bindValue(':nombre', $nombre, PDO::PARAM_STR);
         $stmt->execute();
     
-        $mazoId = $pdo->lastInsertId();
+        $mazoId = (int)$pdo->lastInsertId();
     
-       
         $queryCartas = "INSERT INTO mazo_carta (mazo_id, carta_id, estado) VALUES (:mazo_id, :carta_id, 'en_mazo')";
         $stmtCartas = $pdo->prepare($queryCartas);
-        $stmtCartas->bindParam(':mazo_id', $mazoId, PDO::PARAM_INT);
-        $stmtCartas->bindParam(':carta_id', $cartaId, PDO::PARAM_INT);
-    
+
         foreach ($cartas as $cartaId) {
+            $stmtCartas->bindValue(':mazo_id', $mazoId, PDO::PARAM_INT);
+            $stmtCartas->bindValue(':carta_id', $cartaId, PDO::PARAM_INT);
             $stmtCartas->execute();
         }
     
         $pdo->commit();
-        return (int) $mazoId;
+        return $mazoId;
     }
-    
     
     public function nombreMazoExiste(int $usuarioId, string $nombre, int $mazoIdActual): bool {
         $pdo = $this->database->getConnection();
@@ -80,13 +75,12 @@ class MazoModel {
         $pdo = $this->database->getConnection();
         $query= "
             SELECT COUNT(*) FROM mazo 
-            WHERE usuario_id = :usuario_id AND nombre = :nombre;
+            WHERE usuario_id = :usuario_id AND nombre = :nombre
         ";
 
         $stmt = $pdo->prepare($query);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
         $stmt->bindValue(':nombre', $nombre, PDO::PARAM_STR);
-       
         $stmt->execute();
         return (bool) $stmt->fetchColumn();
     }
@@ -133,11 +127,10 @@ class MazoModel {
         return (bool) $stmt->fetchColumn();
     }
     
-
     public function eliminarMazoConCartas(int $mazoId): int {
         $pdo = $this->database->getConnection();
 
-         // Verifica si el mazo participó en una partida
+        // Verifica si el mazo participó en una partida
         $query= "SELECT COUNT(*) FROM partida WHERE mazo_id = :mazoId";
         $stmt = $pdo->prepare($query);
         $stmt->bindValue(':mazoId', $mazoId, PDO::PARAM_INT);
@@ -165,33 +158,29 @@ class MazoModel {
         return $stmtMazo->rowCount();
     }   
     
-    public function cartasEnMano(int $mazoId): array {
+    public function cartasEnMano(int $mazoId, int $usuarioId): array {
         $query = 'SELECT MC.carta_id FROM mazo M
-        LEFT JOIN mazo_carta MC ON MC.mazo_id = :mazoId
-        WHERE MC.estado = \'en_mano\' AND m.usuario_id = 1';
+            LEFT JOIN mazo_carta MC ON MC.mazo_id = :mazoId
+            WHERE MC.estado = \'en_mano\' AND M.usuario_id = :usuarioId';
 
         $pdo= $this->database->getConnection();
         $stmt = $pdo->prepare($query);
 
-        $stmt->execute(['mazoId' => $mazoId]);
-       
-        $stmt->execute();
+        $stmt->execute([
+            'mazoId' => $mazoId,
+            'usuarioId' => $usuarioId
+        ]);
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function actualizarEstadoMazo(string $estado, int $mazoId){
+    public function actualizarEstadoMazo(string $estado, int $mazoId): void {
         $query = 'UPDATE mazo_carta SET estado = :estado WHERE mazo_id = :mazoId';
         $pdo= $this->database->getConnection();
         $stmt = $pdo->prepare($query);
-        $stmt->execute(['mazoId' => $mazoId,
-        'estado'=> $estado
+        $stmt->execute([
+            'mazoId' => $mazoId,
+            'estado' => $estado
         ]);
-       
-        $stmt->execute();
-
-
     }
-    
-    
 }

@@ -5,65 +5,57 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Model\PartidaModel;
 
-
 class PartidaController {
     public function __construct(private PartidaModel $model) {}
 
     public function start(Request $request, Response $response): Response {
         try {
-            $user = $request->getAttribute('user_id');
+            $usuarioId = $request->getAttribute('usuario_id');
             $data = $request->getParsedBody(); 
-        
-            if (!$user) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'No autorizado']));
+
+            if (!$usuarioId) {
+                $payload = ['Mensaje' => 'No autorizado'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
             }
-        
+
             if (!isset($data['mazo'])) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Ingrese el ID del mazo seleccionado']));
+                $payload = ['Mensaje' => 'Ingrese el ID del mazo seleccionado'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
             
-            $mazoId = $data['mazo'] ?? null;
+            $mazoId = $data['mazo'];
 
-            if (!$mazoId) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Ingrese el ID del mazo seleccionado']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-            }
-
-            $mazo = $this->model->findMazoByIdAndUser((int)$mazoId, (int)$user);
+            $mazo = $this->model->findMazoByIdAndUser((int)$mazoId, (int)$usuarioId);
 
             if (!$mazo) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Mazo no válido o no pertenece al usuario']));
+                $payload = ['Mensaje' => 'Mazo no válido o no pertenece al usuario'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
             
             if ($this->model->mazoServidorEnUso(1)) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'El servidor ya se encuentra jugando otra partida']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
+                $payload = ['Mensaje' => 'El servidor ya se encuentra jugando otra partida'];
+                $response->getBody()->write(json_encode($payload));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
             }
 
             if ($this->model->mazoEnUso($mazoId)) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Este mazo ya está siendo utilizado en otra partida en curso, por favor seleccione otro']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
+                $payload = ['Mensaje' => 'Este mazo ya está siendo utilizado en otra partida en curso, por favor seleccione otro'];
+                $response->getBody()->write(json_encode($payload));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
             }
-
-            
             
             $partidaData = [
-                'user_id' => $user,
+                'user_id' => $usuarioId,
                 'date' => date('Y-m-d H:i:s'),
-                'mazo_id' => $data['mazo'], 
+                'mazo_id' => $mazoId, 
                 'state' => 'en_curso'
             ];
-        
-            if (!isset($partidaData['user_id'], $partidaData['date'], $partidaData['mazo_id'], $partidaData['state'])) {
-                $response->getBody()->write(json_encode(['Mensaje'=>'Falta contenido '])); 
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);  
-            }
-            
+
             $id = $this->model->create($partidaData); 
-            $cartas = $this->model->getCartas($data['mazo']); 
+            $cartas = $this->model->getCartas($mazoId); 
             
             $payload = [
                 'partida_id' => $id,
@@ -72,46 +64,46 @@ class PartidaController {
         
             $response->getBody()->write(json_encode($payload)); 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    
+
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode([
-                'Mensaje' => 'Error en el servidor',
-                'Error' => $e->getMessage()
-            ]));
+            $payload = ['Mensaje' => 'Error en el servidor', 'Error' => $e->getMessage()];
+            $response->getBody()->write(json_encode($payload));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     }
     
     public function cartasEnMano(Request $request, Response $response, string $usuario, string $partida): Response {
         try {
-            $user = $request->getAttribute('user_id');
+            $usuarioId = $request->getAttribute('usuario_id');
         
-            if ($usuario != $user) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'El ID de usuario proporcionado no coincide con el usuario autenticado.']));
+            if ($usuario !== (string)$usuarioId) {
+                $payload = ['Mensaje' => 'El ID de usuario proporcionado no coincide con el usuario autenticado.'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
         
             $mazo = $this->model->getMazoPorPartida($partida, $usuario); 
         
             if (!$mazo) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Esta partida no existe o no pertenece a este usuario']));
+                $payload = ['Mensaje' => 'Esta partida no existe o no pertenece a este usuario'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
         
             if ($mazo['estado'] !== 'en_curso') {
-                $response->getBody()->write(json_encode(['Mensaje' => 'La partida no se encuentra en curso']));
+                $payload = ['Mensaje' => 'La partida no se encuentra en curso'];
+                $response->getBody()->write(json_encode($payload));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
     
             $cartasRestantes = $this->model->getCartasMano($usuario, $partida);
         
             $payload = [];
-        
-            foreach ($cartasRestantes as $cartasR) {
+            foreach ($cartasRestantes as $carta) {
                 $payload[] = [
-                    'ID carta' => $cartasR['carta_id'],
-                    'Nombre del pokemon' => $cartasR['nombre'],
-                    'Nombre del ataque' => $cartasR['ataque_nombre']
+                    'ID carta' => $carta['carta_id'],
+                    'Nombre del pokemon' => $carta['nombre'],
+                    'Nombre del ataque' => $carta['ataque_nombre']
                 ];
             }
         
@@ -119,13 +111,9 @@ class PartidaController {
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     
         } catch (\Throwable $e) {
-            $response->getBody()->write(json_encode([
-                'Mensaje' => 'Error en el servidor',
-                'Error' => $e->getMessage()
-            ]));
+            $payload = ['Mensaje' => 'Error en el servidor', 'Error' => $e->getMessage()];
+            $response->getBody()->write(json_encode($payload));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
     }
-    
-    
 }

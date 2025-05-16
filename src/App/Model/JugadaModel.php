@@ -77,10 +77,11 @@ class JugadaModel
     public function determinarGanadorRonda(array $registroJugada): array
     {
         $pdo = $this->database->getConnection();
-        $stmt = $pdo->prepare('SELECT id, ataque, atributo_id FROM carta WHERE id IN (:a, :b)');
+
+        $stmt = $pdo->prepare('SELECT id, ataque, atributo_id FROM carta WHERE id IN (?, ?)');
         $stmt->execute([
-            ':a' => $registroJugada['carta_id_a'],
-            ':b' => $registroJugada['carta_id_b']
+            $registroJugada['carta_id_a'],
+            $registroJugada['carta_id_b']
         ]);
         $cartas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -139,7 +140,6 @@ class JugadaModel
             'fuerza_servidor' => $ataqueServidor
         ];
     }
-
 
     public function cantidadDeRondas(int $partidaId): int
     {
