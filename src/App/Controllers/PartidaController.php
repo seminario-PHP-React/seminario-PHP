@@ -78,7 +78,7 @@ class PartidaController {
         try {
             $user = $request->getAttribute('user_id');
         
-            if ($usuario != $user) {
+            if ((int)$usuario != (int)$user) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'El ID de usuario proporcionado no coincide con el usuario autenticado.']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
