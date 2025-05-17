@@ -32,7 +32,39 @@ class EstadisticaModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    
+    public function getEstadisticasUsuario(int $usuarioId): array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT 
+                COUNT(*) as total_partidas,
+                SUM(CASE WHEN estado = 'ganada' THEN 1 ELSE 0 END) as partidas_ganadas,
+                SUM(CASE WHEN estado = 'perdida' THEN 1 ELSE 0 END) as partidas_perdidas,
+                SUM(CASE WHEN estado = 'empatada' THEN 1 ELSE 0 END) as partidas_empatadas
+            FROM partida 
+            WHERE usuario_id = :usuario_id
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
 
-
+    public function getEstadisticasGlobales(): array {
+        $pdo = $this->database->getConnection();
+        $query = "
+            SELECT 
+                COUNT(*) as total_partidas,
+                SUM(CASE WHEN estado = 'ganada' THEN 1 ELSE 0 END) as partidas_ganadas,
+                SUM(CASE WHEN estado = 'perdida' THEN 1 ELSE 0 END) as partidas_perdidas,
+                SUM(CASE WHEN estado = 'empatada' THEN 1 ELSE 0 END) as partidas_empatadas
+            FROM partida
+        ";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
 }

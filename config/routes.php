@@ -1,57 +1,57 @@
-<?php 
+<?php
 declare(strict_types=1);
+
 use Slim\Routing\RouteCollectorProxy;
-
-use App\Controllers\CardsController;
-use App\Controllers\SignupController;
-use App\Controllers\LoginController;
-use App\Controllers\ProfileController;
-use App\Controllers\PartidaController;
-use App\Controllers\MazoController;
-use App\Controllers\EstadisticasController;
-use App\Controllers\JugadaController;
+use App\Controllers\{
+    CardsController,
+    SignupController,
+    LoginController,
+    ProfileController,
+    PartidaController,
+    MazoController,
+    EstadisticasController,
+    JugadaController
+};
 use App\Middleware\RequireAPIKey;
-use App\Middleware\ActivateSession;
-use App\Middleware\RequireLogin;
-
-
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../');  // cargar el archivo .env 
+// Cargar variables de entorno
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
-
-$app->group('', function (RouteCollectorProxy $group){
-    $group->post('/registro', SignupController::class . ':create' ); 
-    $group->post('/login', LoginController::class . ':create' );
+// RUTAS PÚBLICAS 
+$app->group('', function (RouteCollectorProxy $group) {
+    $group->post('/registro', SignupController::class . ':create'); 
+    $group->post('/login', LoginController::class . ':create');
     $group->get('/logout', LoginController::class . ':destroy');
-
-    $group->group('', function (RouteCollectorProxy $group){
-        $group->group('/mazos', function (RouteCollectorProxy $group){
-            $group->delete('/{id:[0-9]+}', MazoController::class . ':delete'); 
-            $group->put('/{id:[0-9]+}', MazoController::class . ':update');  
-            $group->post('', MazoController::class . ':create'); 
-        });
-
-        $group->group('/usuarios', function (RouteCollectorProxy $group){
-            $group->put('/{usuario:[0-9]+}', ProfileController::class . ':update');
-            $group->get('/{usuario:[0-9]+}', ProfileController::class . ':showUserData');
-            $group->get('/{usuario}/mazos', MazoController::class . ':getUserMazos'); 
-        });
-        $group->post('/jugadas',JugadaController::class . ':registrarJugada');
-    })->add(RequireLogin::class);
-})->add(ActivateSession::class);
-
-
-$app->group('', function (RouteCollectorProxy $group){
-    $group->post('/partida', PartidaController::class . ':start');
-    $group->get('/usuarios/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', PartidaController::class . ':cartasEnMano');
     $group->get('/cartas', CardsController::class . ':showByData');
+    $group->get('/estadisticas', EstadisticasController::class . ':show');
+});
+
+
+
+// RUTAS PRIVADAS 
+$app->group('', function (RouteCollectorProxy $group) {
+
+    //  Perfil de usuario
+    $group->group('/usuarios', function (RouteCollectorProxy $group) {
+        $group->put('/{usuario:[0-9]+}', ProfileController::class . ':update');
+        $group->get('/{usuario:[0-9]+}', ProfileController::class . ':showUserData');
+        $group->get('/{usuario:[0-9]+}/mazos', MazoController::class . ':getUserMazos');
+        $group->get('/{usuario:[0-9]+}/partidas/{partida:[0-9]+}/cartas', PartidaController::class . ':cartasEnMano');
+    });
+
+    //  Partidas
+    $group->post('/partidas', PartidaController::class . ':start');
+
+    // Jugadas
+    $group->post('/jugadas', JugadaController::class . ':registrarJugada');
+
+    // Mazos
+    $group->group('/mazos', function (RouteCollectorProxy $group){
+        $group->delete('/{id:[0-9]+}', MazoController::class . ':delete'); 
+        $group->put('/{id:[0-9]+}', MazoController::class . ':update');  
+        $group->post('', MazoController::class . ':create'); 
+    });
+
 })->add(RequireAPIKey::class);
-
-
-$app->get('/estadisticas', EstadisticasController::class . ':show');
-
-
-
-?>

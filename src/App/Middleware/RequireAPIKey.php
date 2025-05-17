@@ -19,39 +19,41 @@ class RequireAPIKey
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        if (! $request->hasHeader('Authorization')) {
+        if (!$request->hasHeader('Authorization')) {
             $response = $this->factory->createResponse();
             $response->getBody()->write(json_encode(['Mensaje' => 'Se requiere el encabezado Authorization']));
-            return $response->withStatus(400);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(400);
         }
-    
+
         $authHeader = $request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $authHeader);
-    
+
         try {
-            // Decodificar el token JWT
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET_KEY'], 'HS256'));
-            $userId = $decoded->sub; // El user_id (sub) del payload
-    
-            // Verificar si el user_id existe en la base de datos
-            $user = $this->model->findById($userId); // Suponiendo que tienes un método en tu UserModel llamado findById
-            
+            $userId = (int) $decoded->sub;
+
+            $user = $this->model->findById($userId);
+
             if (!$user) {
                 $response = $this->factory->createResponse();
                 $response->getBody()->write(json_encode(['Mensaje' => 'Usuario no encontrado']));
-                return $response->withStatus(401); // Usuario no encontrado
+                return $response
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStatus(401);
             }
-    
-            // Si el usuario existe, lo agregamos al request
+
+            // Inyectar el user_id en el request como int
             $request = $request->withAttribute('user_id', $userId);
-    
         } catch (\Exception $e) {
             $response = $this->factory->createResponse();
             $response->getBody()->write(json_encode(['Mensaje' => 'El token ingresado no es válido o se encuentra vencido']));
-            return $response->withStatus(401);
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(401);
         }
-    
-        $response = $handler->handle($request);
-        return $response;
+
+        return $handler->handle($request);
     }
 }

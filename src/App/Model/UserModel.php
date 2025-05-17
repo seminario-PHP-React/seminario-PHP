@@ -13,51 +13,54 @@ class UserModel{
     public function create(array $data): int
     {
         $query = "INSERT INTO usuario (nombre, usuario, password)
-                VALUES (:name, :user_name, :password_hash)";
+                VALUES (:nombre, :usuario, :password)";
         
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
         
-        $stmt->bindValue(':name', $data['name']);
-        $stmt->bindValue(':user_name', $data['user_name']);
-        $stmt->bindValue(':password_hash', $data['password_hash']);
+        $stmt->bindValue(':nombre', $data['nombre']);
+        $stmt->bindValue(':usuario', $data['usuario']);
+        $stmt->bindValue(':password', $data['password_hash']);
         
-    
         $stmt->execute();
     
-        return (int) $pdo->lastInsertId(); 
+        $result = (int) $pdo->lastInsertId();
+        $this->database->closeConnection();
+        return $result; 
     }
     
-    public function userExists(string $userName): bool
+    public function userExists(string $usuario): bool
     {
-        $query = "SELECT COUNT(*) FROM usuario WHERE usuario = :user_name";
-        $pdo = $this->database ->getConnection();
+        $query = "SELECT COUNT(*) FROM usuario WHERE usuario = :usuario";
+        $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':user_name', $userName);
+        $stmt->bindParam(':usuario', $usuario);
         $stmt->execute();
         $result = $stmt->fetchColumn();
+        $this->database->closeConnection();
         return $result > 0;  
     }
 
-    public function find(string $column, $value):array|bool
+    public function find(string $column, $value): array|bool
     {
         $query = "SELECT * FROM usuario WHERE $column = :value";
-        $pdo = $this->database ->getConnection();
-        $stmt = $pdo->prepare($query);
-        $stmt->bindValue(':value', $value);
-        $stmt->execute();
-        return $stmt->fetch();
-    }
-    public function update(int $id, string $column, $value): void{
-        $query = "UPDATE usuario SET $column = :value WHERE id = :id";
-
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
-
+        $stmt->bindValue(':value', $value);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result ?: false;
+    }
+    public function update(int $id, string $column, $value): void
+    {
+        $query = "UPDATE usuario SET $column = :value WHERE id = :id";
+        $pdo = $this->database->getConnection();
+        $stmt = $pdo->prepare($query);
         $stmt->bindValue(':value', $value);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
         $stmt->execute();
+        $this->database->closeConnection();
     }
     public function updateApiKey(int $userId, string $apiKey, string $expiration): void
     {
@@ -73,6 +76,7 @@ class UserModel{
         $stmt->bindValue(':id', $userId, \PDO::PARAM_INT);
 
         $stmt->execute();
+        $this->database->closeConnection();
     }
     public function findById(int $userId): ?array
     {
@@ -82,17 +86,21 @@ class UserModel{
         $stmt->bindValue(':user_id', $userId);
         $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null; // Devuelve el usuario o null si no se encuentra
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result ?: null; // Devuelve el usuario o null si no se encuentra
     }
-    public function getAPIKey(int $id){
-        $query= 'SELECT token FROM usuario WHERE id = :id';
+    public function getAPIKey(int $id): ?string
+    {
+        $query = 'SELECT token FROM usuario WHERE id = :id';
         $pdo = $this->database->getConnection();
         $stmt = $pdo->prepare($query);
         
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-        $token= $stmt->fetch(PDO::FETCH_ASSOC);
-        return $token['token'];
+        $token = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $token ? $token['token'] : null;
     }
 
 }

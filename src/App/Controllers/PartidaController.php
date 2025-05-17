@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -24,46 +26,36 @@ class PartidaController {
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
             
-            $mazoId = $data['mazo'] ?? null;
+            $mazoId = (int)$data['mazo'];
 
-            if (!$mazoId) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Ingrese el ID del mazo seleccionado']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-            }
-
-            $mazo = $this->model->findMazoByIdAndUser((int)$mazoId, (int)$user);
-
+            // Primero verificamos si el mazo pertenece al usuario
+            $mazo = $this->model->findMazoByIdAndUser($mazoId, (int)$user);
             if (!$mazo) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Mazo no válido o no pertenece al usuario']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
-            
+
+            // Luego verificamos si el mazo ya está en uso
+            if ($this->model->mazoEnUso($mazoId, (int)$user)) {
+                $response->getBody()->write(json_encode(['Mensaje' => 'Este mazo ya está siendo utilizado en otra partida en curso, por favor seleccione otro']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+            }
+
+            // Finalmente verificamos si el servidor está ocupado
             if ($this->model->mazoServidorEnUso(1)) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'El servidor ya se encuentra jugando otra partida']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
             }
-
-            if ($this->model->mazoEnUso($mazoId)) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'Este mazo ya está siendo utilizado en otra partida en curso, por favor seleccione otro']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(409); // 409 Conflict
-            }
-
-            
             
             $partidaData = [
-                'user_id' => $user,
+                'user_id' => (int)$user,
                 'date' => date('Y-m-d H:i:s'),
-                'mazo_id' => $data['mazo'], 
+                'mazo_id' => $mazoId,
                 'state' => 'en_curso'
             ];
-        
-            if (!isset($partidaData['user_id'], $partidaData['date'], $partidaData['mazo_id'], $partidaData['state'])) {
-                $response->getBody()->write(json_encode(['Mensaje'=>'Falta contenido '])); 
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);  
-            }
             
             $id = $this->model->create($partidaData); 
-            $cartas = $this->model->getCartas($data['mazo']); 
+            $cartas = $this->model->getCartas($mazoId); 
             
             $payload = [
                 'partida_id' => $id,
@@ -86,12 +78,12 @@ class PartidaController {
         try {
             $user = $request->getAttribute('user_id');
         
-            if ($usuario != $user) {
+            if ((int)$usuario != (int)$user) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'El ID de usuario proporcionado no coincide con el usuario autenticado.']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
         
-            $mazo = $this->model->getMazoPorPartida($partida, $usuario); 
+            $mazo = $this->model->getMazoPorPartida((int)$partida, (int)$usuario); 
         
             if (!$mazo) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Esta partida no existe o no pertenece a este usuario']));
@@ -103,7 +95,7 @@ class PartidaController {
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
             }
     
-            $cartasRestantes = $this->model->getCartasMano($usuario, $partida);
+            $cartasRestantes = $this->model->getCartasMano((int)$usuario, (int)$partida);
         
             $payload = [];
         

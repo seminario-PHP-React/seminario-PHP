@@ -45,7 +45,42 @@ class CardModel
     
        
         $stmt->execute();
+        $this->database->closeConnection();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    public function getCards(): array {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT * FROM carta";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
+
+    public function getCardById(int $id): ?array {
+        $pdo = $this->database->getConnection();
+        $query = "SELECT * FROM carta WHERE id = :id";
+        $stmt = $pdo->prepare($query);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result ?: null;
+    }
+
+    public function getCardsByIds(array $ids): array {
+        if (empty($ids)) {
+            return [];
+        }
+        $pdo = $this->database->getConnection();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $query = "SELECT * FROM carta WHERE id IN ($placeholders)";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($ids);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->database->closeConnection();
+        return $result;
+    }
 }

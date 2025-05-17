@@ -1,12 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Model\UserModel;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Model\UserModel;
 use Valitron\Validator;
 
 Validator::langDir(__DIR__ . '/../../../vendor/vlucas/valitron/lang');
@@ -18,27 +17,45 @@ class ProfileController
     {
     }
 
-
     public function showUserData(Request $request, Response $response, string $usuario): Response
     {
         try {
-            $user = $request->getAttribute('usuario');
-
-            if ($usuario != $user['id']) {
-                $body = json_encode(['Mensaje' => 'Acceso denegado']);
+            $usuarioIdToken = $request->getAttribute('user_id');
+            if (!$usuarioIdToken) {
+                $body = json_encode(['Mensaje' => 'Token inválido o expirado']);
                 $response->getBody()->write($body);
-                return $response->withStatus(401);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+            }
+
+            if (!is_numeric($usuario)) {
+                $body = json_encode(['Mensaje' => 'El ID de usuario debe ser un número']);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+
+            if ((int)$usuario !== (int)$usuarioIdToken) {
+                $body = json_encode(['Mensaje' => 'Solo puede ver su propio perfil']);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
+
+            $user = $this->model->findById((int)$usuario);
+            if (!$user) {
+                $body = json_encode(['Mensaje' => 'Usuario no encontrado']);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
 
             $body = json_encode([
                 "Nombre" => $user['nombre'],
                 "Usuario" => $user['usuario'],
+                "ID" => $user['id'],
                 "Token" => $user['token'],
-                "Fecha de vencimiento del token" => date('d-m-Y H:i:s', strtotime($user['vencimiento_token']))
+                "Vencimiento del token" => $user['vencimiento_token']
             ]);
 
             $response->getBody()->write($body);
-            return $response;
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         } catch (\Exception $e) {
             return $this->handleError($response, $e);
         }
@@ -47,70 +64,68 @@ class ProfileController
     public function update(Request $request, Response $response, string $usuario): Response
     {
         try {
-            $user = $request->getAttribute('usuario');
-            $data = $request->getParsedBody() ?? []; // Evita errores si el body es null
+            $usuarioIdToken = $request->getAttribute('user_id');
 
-            if ($usuario != $user['id']) {
+            if ((int) $usuario !== $usuarioIdToken) {
                 $body = json_encode(['Mensaje' => 'Acceso denegado']);
                 $response->getBody()->write($body);
-                return $response->withStatus(401);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
             }
+
+            $data = $request->getParsedBody() ?? [];
 
             if (empty($data)) {
                 $body = json_encode(['Mensaje' => 'Debe enviar un campo válido (nombre o contraseña).']);
                 $response->getBody()->write($body);
-                return $response->withStatus(400);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
             }
 
-            // Configurar reglas dinámicamente según los campos recibidos
             $rules = [];
 
-            if (isset($data['name'])) {
-                $rules['name'] = ['required', ['regex', '/^[a-zA-Z\s]+$/'], ['lengthBetween', 6, 20]];
+            if (isset($data['nombre'])) {
+                $rules['nombre'] = ['required', ['regex', '/^[a-zA-Z\s]+$/']];
             }
 
-            if (isset($data['password']) || isset($data['password_confirmation'])) {
-                $rules['password'] = ['required', ['lengthMin', 8], ['regex', '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/']];
-                $rules['password_confirmation'] = ['required', ['equals', 'password']];
+            if (isset($data['contraseña'])) {
+                $rules['contraseña'] = [
+                    'required',
+                    ['lengthMin', 8],
+                    ['regex', '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/']
+                ];
             }
 
-            // Aplicar solo las reglas necesarias
-            $this->validator->mapFieldsRules($rules);
-            $this->validator = $this->validator->withData($data);
+            if (!empty($rules)) {
+                $this->validator->mapFieldsRules($rules);
+                $this->validator = $this->validator->withData($data);
 
-            if (!$this->validator->validate()) {
-                $body = json_encode($this->validator->errors());
-                $response->getBody()->write($body);
-                return $response->withStatus(400);
-            }
-
-            // Si es actualización de contraseña
-            if (isset($data['password']) && isset($data['password_confirmation'])) {
-                if ($data['password'] !== $data['password_confirmation']) {
-                    $body = json_encode(['Mensaje' => 'Las contraseñas no coinciden.']);
+                if (!$this->validator->validate()) {
+                    $body = json_encode([
+                        'Mensaje' => 'Error de validación',
+                        'Errores' => $this->validator->errors()
+                    ]);
                     $response->getBody()->write($body);
-                    return $response->withStatus(400);
+                    return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
                 }
+            }
 
-                $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
-                $this->model->update($user['id'], 'password_hash', $hashedPassword);
+            if (isset($data['contraseña'])) {
+                $hashedPassword = password_hash($data['contraseña'], PASSWORD_DEFAULT);
+                $this->model->update((int)$usuarioIdToken, 'password', $hashedPassword);
                 $body = json_encode(['Mensaje' => 'Contraseña actualizada con éxito.']);
                 $response->getBody()->write($body);
-                return $response->withStatus(200);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
             }
 
-            // Si es actualización de nombre
-            if (isset($data['name'])) {
-                $this->model->update($user['id'], 'nombre', $data['name']);
+            if (isset($data['nombre'])) {
+                $this->model->update((int)$usuarioIdToken, 'nombre', $data['nombre']);
                 $body = json_encode(['Mensaje' => 'Nombre actualizado exitosamente.']);
                 $response->getBody()->write($body);
-
-                return $response->withStatus(200);
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
             }
 
             $body = json_encode(['Mensaje' => 'Debe enviar un campo válido para actualizar.']);
             $response->getBody()->write($body);
-            return $response->withStatus(400);
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         } catch (\Exception $e) {
             return $this->handleError($response, $e);
         }
@@ -123,6 +138,6 @@ class ProfileController
             'Detalle' => $e->getMessage()
         ];
         $response->getBody()->write(json_encode($errorMessage));
-        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 }
