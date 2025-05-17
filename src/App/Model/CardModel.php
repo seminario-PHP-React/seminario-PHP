@@ -23,28 +23,30 @@ class CardModel
             WHERE 1 = 1 
         ";
         
-        $params = [];
-        
         if ($atributo !== null) {
             $query .= " AND LOWER(A.nombre) LIKE :atributo";
-            $params[':atributo'] = '%' . strtolower($atributo) . '%';
         }
         
         if ($nombre !== null) {
             $query .= " AND LOWER(C.nombre) LIKE :nombre";
-            $params[':nombre'] = '%' . strtolower($nombre) . '%';
         }
         
+    
         $stmt = $pdo->prepare($query);
-        
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value, PDO::PARAM_STR);
+    
+        if ($atributo) {
+            $stmt->bindValue(':atributo', strtolower($atributo), PDO::PARAM_STR); 
         }
         
+    
+        if ($nombre) {
+            $stmt->bindValue(':nombre', strtolower($nombre), PDO::PARAM_STR); 
+        }
+    
+       
         $stmt->execute();
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $this->database->closeConnection();
-        return $result;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     public function getCards(): array {
