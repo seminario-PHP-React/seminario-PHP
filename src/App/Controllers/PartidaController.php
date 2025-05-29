@@ -103,7 +103,8 @@ class PartidaController {
                 $payload[] = [
                     'ID carta' => $cartasR['carta_id'],
                     'Nombre del pokemon' => $cartasR['nombre'],
-                    'Nombre del ataque' => $cartasR['ataque_nombre']
+                    'Nombre del ataque' => $cartasR['ataque_nombre'],
+                    'Ataque' => $cartasR['ataque']
                 ];
             }
         

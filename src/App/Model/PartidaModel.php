@@ -116,7 +116,7 @@ class PartidaModel {
 
         $pdo = $this->database->getConnection();
         $query = "
-            SELECT mc.carta_id, c.nombre, c.ataque_nombre, a.nombre AS atributo_nombre 
+            SELECT mc.carta_id, c.nombre, c.ataque_nombre, c.ataque, a.nombre AS atributo_nombre 
             FROM partida p 
             INNER JOIN mazo m ON m.id = p.mazo_id
             INNER JOIN mazo_carta mc ON mc.mazo_id = p.mazo_id
