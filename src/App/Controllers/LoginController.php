@@ -21,7 +21,7 @@ class LoginController {
 
             if (!isset($data['usuario'], $data['nombre'], $data['contraseña'])) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campos en el cuerpo de la solicitud']));
-                return $response->withStatus(401);
+                return $response->withStatus(400);
             }    
 
             $user = $this->model->find('usuario', $data['usuario']);

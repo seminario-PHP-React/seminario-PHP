@@ -70,6 +70,7 @@ class MazoController {
                 $response->getBody()->write(json_encode(["Mensaje" => "Los campos nombre o cartas son obligatorios"]));
                 return $response->withStatus(400)->withHeader("Content-Type", "application/json");
             }
+            
 
             $nombre = trim($data['nombre']);
             $cartas = $data['cartas'];
@@ -81,8 +82,11 @@ class MazoController {
 
             switch (true) {
                 case count($cartas) > 5:
-                    $mensaje = "Máximo 5 cartas por mazo";
+                    $mensaje = "El mazo debe tener 5 cartas";
                     break;
+                case count($cartas) < 5:
+                        $mensaje = "El mazo debe tener 5 cartas";
+                        break;
                 case count($cartas) !== count(array_unique($cartas)):
                     $mensaje = "No se permiten cartas repetidas";
                     break;
