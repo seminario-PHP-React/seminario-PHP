@@ -19,15 +19,15 @@ class LoginController {
         try {
             $data = $request->getParsedBody(); 
 
-            if (!isset($data['usuario'], $data['nombre'], $data['contraseña'])) {
+            if (!isset($data['usuario'], $data['contraseña'])) {
                 $response->getBody()->write(json_encode(['Mensaje' => 'Faltan campos en el cuerpo de la solicitud']));
                 return $response->withStatus(400);
             }    
 
             $user = $this->model->find('usuario', $data['usuario']);
 
-            if (!$user || $user['usuario'] !== $data['usuario'] || $user['nombre'] !== $data['nombre'] || !password_verify($data['contraseña'], $user['password'])) {
-                $response->getBody()->write(json_encode(['Mensaje' => 'El usuario, el nombre o la contraseña son incorrectos']));
+            if (!$user || $user['usuario'] !== $data['usuario'] ||  !password_verify($data['contraseña'], $user['password'])) {
+                $response->getBody()->write(json_encode(['Mensaje' => 'El usuario o la contraseña son incorrectos']));
                 return $response->withStatus(401);
             }
             
