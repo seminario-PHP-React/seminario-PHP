@@ -16,6 +16,16 @@ class LoginController {
 
     public function create(Request $request, Response $response): Response
     {
+        // Headers CORS para permitir peticiones desde React
+        $response = $response->withHeader('Access-Control-Allow-Origin', '*');
+        $response = $response->withHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+        $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        // Manejar preflight OPTIONS request
+        if ($request->getMethod() === 'OPTIONS') {
+            return $response->withStatus(200);
+        }
+        
         try {
             $data = $request->getParsedBody(); 
 
@@ -47,7 +57,8 @@ class LoginController {
 
             $response->getBody()->write(json_encode([
                 'Mensaje' => 'Bienvenido ' . $user['nombre'],
-                'Token' => $jwt
+                'Token' => $jwt,
+                'id' => (int)$user['id']
             ]));
 
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
